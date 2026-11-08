@@ -79,10 +79,22 @@ jobs:
         with:
           workspaces: desktop/src-tauri -> target
 
+      # Tauri downloads its NSIS tools from GitHub on first bundle; keep them so a flaky download (HTTP 504) can't fail a release.
+      - uses: actions/cache@v6
+        with:
+          path: ~\AppData\Local\tauri
+          key: tauri-tools-${{ runner.os }}-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}
+          restore-keys: tauri-tools-${{ runner.os }}-
+
       # Same script as a local build: types, service tests and publish, notices, pnpm check, Tauri NSIS bundle.
+      # ponytail: retries the whole script (incremental, so later tries are quick) to ride out download timeouts.
       - name: Build installer
         shell: pwsh
-        run: ./scripts/build-installer.ps1
+        run: |
+          foreach ($try in 1..3) {
+            try { ./scripts/build-installer.ps1; break }
+            catch { if ($try -eq 3) { throw }; Write-Warning "Build attempt $try failed: $_. Retrying in 30 s."; Start-Sleep 30 }
+          }
 
       - name: Upload unsigned installer
         id: upload-unsigned
