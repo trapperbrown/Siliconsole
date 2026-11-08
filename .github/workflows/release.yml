@@ -86,6 +86,20 @@ jobs:
           key: tauri-tools-${{ runner.os }}-${{ hashFiles('desktop/src-tauri/Cargo.lock') }}
           restore-keys: tauri-tools-${{ runner.os }}-
 
+      # On a cache miss, use our hosted copy (the "build-tools" pre-release) so Tauri skips the upstream download.
+      - name: Restore NSIS tools
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NSIS_ZIP_SHA256: 90426b8890a1aa6c9b014b84b947f0910aea6ba442c726e4f55a69b3acd960b6
+        run: |
+          $dest = Join-Path $env:LOCALAPPDATA 'tauri\NSIS'
+          if (Test-Path (Join-Path $dest 'makensis.exe')) { 'NSIS tools already cached'; exit 0 }
+          gh release download build-tools --repo $env:GITHUB_REPOSITORY --pattern tauri-nsis.zip --dir $env:RUNNER_TEMP
+          $zip = Join-Path $env:RUNNER_TEMP 'tauri-nsis.zip'
+          if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $env:NSIS_ZIP_SHA256) { throw 'tauri-nsis.zip hash mismatch' }
+          Expand-Archive $zip -DestinationPath $dest
+
       # Same script as a local build: types, service tests and publish, notices, pnpm check, Tauri NSIS bundle.
       # ponytail: retries the whole script (incremental, so later tries are quick) to ride out download timeouts.
       - name: Build installer
