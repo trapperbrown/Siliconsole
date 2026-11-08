@@ -1,12 +1,13 @@
 import { useState } from "react";
-import type { Widget, WidgetType } from "../generated/schema-types";
+import type { Widget } from "../generated/schema-types";
 import { DashboardGrid } from "../components/DashboardGrid";
+import { NewDashboardWizard } from "../components/NewDashboardWizard";
+import { WidgetPicker } from "../components/WidgetPicker";
 import { ServiceHelp } from "../components/StatusIndicator";
 import { WidgetSettingsPanel } from "../components/WidgetSettingsPanel";
 import { config } from "../lib/config";
-import { newWidgetId, useDashboards } from "../lib/dashboards";
+import { useDashboards } from "../lib/dashboards";
 import { settings, useSettings } from "../lib/settings";
-import { WIDGETS } from "../widgets/registry";
 
 export function DashboardsPage() {
   const store = useDashboards();
@@ -16,6 +17,8 @@ export function DashboardsPage() {
   const [editingWidget, setEditingWidget] = useState<Widget | null>(null);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [wizard, setWizard] = useState(false);
+  const [picker, setPicker] = useState(false);
 
   const flash = (msg: string) => {
     setNote(msg);
@@ -29,11 +32,10 @@ export function DashboardsPage() {
     }
   };
 
-  const addWidget = (type: WidgetType) => {
+  const addWidget = (picked: Widget) => {
+    setPicker(false);
     if (!d) return;
-    const { w, h } = config.dashboards.newWidgetSize;
-    const y = d.widgets.reduce((m, x) => Math.max(m, x.y + x.h), 0);
-    const widget: Widget = { id: newWidgetId(), type, x: 0, y, w, h, sensorIds: [], settings: {} };
+    const widget = { ...picked, y: d.widgets.reduce((m, x) => Math.max(m, x.y + x.h), 0) };
     store.update({ ...d, widgets: [...d.widgets, widget] });
     setEditingWidget(widget);
   };
@@ -59,7 +61,7 @@ export function DashboardsPage() {
             </button>
           </form>
         ) : (
-          <select className="field w-56" value={d?.id ?? ""} onChange={(e) => run(() => store.setActive(e.target.value))} aria-label="Active dashboard">
+          <select className="field w-56" data-tour="dash-select" data-tip="Switch dashboards" value={d?.id ?? ""} onChange={(e) => run(() => store.setActive(e.target.value))} aria-label="Active dashboard">
             {store.list.map((x) => (
               <option key={x.id} value={x.id}>
                 {x.name}
@@ -67,19 +69,14 @@ export function DashboardsPage() {
             ))}
           </select>
         )}
-        <button className={`btn ${editing ? "btn-accent" : ""}`} onClick={() => setEditing(!editing)} disabled={!d}>
+        <button className={`btn ${editing ? "btn-accent" : ""}`} data-tour="dash-edit" data-tip="Drag and resize widgets, add new ones, or click a widget's gear to change its sensor and colors" onClick={() => setEditing(!editing)} disabled={!d}>
           {editing ? "Done editing" : "Edit"}
         </button>
         {editing && d && (
           <>
-            <select className="field" value="" onChange={(e) => e.target.value && addWidget(e.target.value as WidgetType)} aria-label="Add widget">
-              <option value="">Add widget</option>
-              {Object.entries(WIDGETS).map(([type, k]) => (
-                <option key={type} value={type}>
-                  {k.label}
-                </option>
-              ))}
-            </select>
+            <button className="btn" data-tip="Choose a widget type with a live preview" onClick={() => setPicker(true)}>
+              Add widget
+            </button>
             <button className="btn" onClick={() => setRenaming(d.name)}>
               Rename
             </button>
@@ -87,19 +84,19 @@ export function DashboardsPage() {
         )}
         <div className="ml-auto flex flex-wrap items-center gap-2">
           {note && <span className="text-sm text-muted">{note}</span>}
-          <button className="btn" onClick={() => run(() => store.create(`Dashboard ${store.list.length + 1}`))}>
+          <button className="btn btn-accent" data-tour="dash-new" data-tip="Create a dashboard from a preset or start blank" onClick={() => setWizard(true)}>
             New
           </button>
-          <button className="btn" disabled={!d} onClick={() => d && run(() => store.duplicate(d))}>
+          <button className="btn" data-tip="Copy this dashboard so you can change it without losing the original" disabled={!d} onClick={() => d && run(() => store.duplicate(d))}>
             Duplicate
           </button>
-          <button className="btn" disabled={!d} onClick={() => d && run(async () => (await store.exportDashboard(d)) && flash("Dashboard exported"))}>
+          <button className="btn" data-tip="Save this dashboard to a file you can share with friends" disabled={!d} onClick={() => d && run(async () => (await store.exportDashboard(d)) && flash("Dashboard exported"))}>
             Export
           </button>
-          <button className="btn" onClick={() => run(async () => { const name = await store.importDashboard(); if (name) flash(`Imported ${name}`); })}>
+          <button className="btn" data-tip="Load a dashboard file someone shared with you" onClick={() => run(async () => { const name = await store.importDashboard(); if (name) flash(`Imported ${name}`); })}>
             Import
           </button>
-          <button className={`btn ${isOverlay ? "btn-accent" : ""}`} disabled={!d} onClick={() => d && run(() => settings.update({ overlayDashboardId: d.id }))} title={`Overlay hotkey: ${config.overlay.hotkey.replace("CommandOrControl", "Ctrl")}`}>
+          <button className={`btn ${isOverlay ? "btn-accent" : ""}`} disabled={!d} onClick={() => d && run(() => settings.update({ overlayDashboardId: d.id }))} data-tour="dash-overlay" data-tip={`Show this dashboard on the always-on-top overlay. Toggle it in games with ${config.overlay.hotkey.replace("CommandOrControl", "Ctrl")}.`}>
             {isOverlay ? "Overlay dashboard" : "Use for overlay"}
           </button>
           <button className="btn" disabled={!d} onClick={() => d && confirm(`Delete dashboard "${d.name}"?`) && run(() => store.remove(d.id))}>
@@ -108,8 +105,8 @@ export function DashboardsPage() {
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-auto">
-        {!d && <p className="text-muted">No dashboards yet. They are created from the starter templates once sensor data arrives, or click New.</p>}
-        {d && d.widgets.length === 0 && <p className="mb-2 text-sm text-muted">This dashboard is empty. Click Edit, then Add widget, or pin sensors from the Sensors page.</p>}
+        {!d && <p className="text-muted">No dashboards yet. Starter dashboards appear once sensor data arrives, or click New to pick a preset.</p>}
+        {d && d.widgets.length === 0 && <p className="mb-2 text-sm text-muted">This dashboard is empty. Click Edit, then Add widget, or click + next to a sensor on the Sensors page.</p>}
         {d && (
           <DashboardGrid
             dashboard={d}
@@ -120,6 +117,8 @@ export function DashboardsPage() {
           />
         )}
       </div>
+      {wizard && <NewDashboardWizard onClose={() => setWizard(false)} />}
+      {picker && <WidgetPicker onPick={addWidget} onClose={() => setPicker(false)} />}
       {editingWidget && d && (
         <WidgetSettingsPanel
           widget={editingWidget}

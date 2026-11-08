@@ -19,6 +19,9 @@ const templates = config.dashboards.starterIds
   .map((id) => Object.values(templateModules).find((d) => d.id === id))
   .filter((d): d is Dashboard => !!d);
 
+/** Every preset in shared/dashboards: the starters first, then the rest by name. */
+export const presets: Dashboard[] = [...templates, ...Object.values(templateModules).filter((d) => !templates.includes(d)).sort((a, b) => a.name.localeCompare(b.name))];
+
 export const newWidgetId = () => Math.random().toString(36).slice(2, 10);
 
 export function slugify(name: string): string {
@@ -29,11 +32,13 @@ export function slugify(name: string): string {
 /** Resolves a template query against the live catalog. Hardware type order in the query is a preference. */
 function runQuery(q: SensorQuery, cat: SensorCatalogMessage): string[] {
   const hwType = new Map(cat.hardware.map((h) => [h.id, h.hardwareType]));
+  const hwName = new Map(cat.hardware.map((h) => [h.id, h.name]));
+  const hwPattern = q.hardwareNamePattern ? new RegExp(q.hardwareNamePattern) : null;
   const name = q.namePattern ? new RegExp(q.namePattern) : null;
   const exclude = q.excludePattern ? new RegExp(q.excludePattern) : null;
   const rank = (hwId: string) => (q.hardwareTypes ? q.hardwareTypes.indexOf(hwType.get(hwId) ?? "") : 0);
   const matches = cat.sensors
-    .filter((s) => rank(s.hardwareId) >= 0)
+    .filter((s) => rank(s.hardwareId) >= 0 && (!hwPattern || hwPattern.test(hwName.get(s.hardwareId) ?? "")))
     .filter((s) => !q.sensorTypes || q.sensorTypes.includes(s.sensorType))
     .filter((s) => (!name || name.test(s.name)) && (!exclude || !exclude.test(s.name)))
     .map((s, i) => ({ s, i }))
@@ -175,6 +180,15 @@ class DashboardStore {
 
   async create(name: string) {
     await this.add({ schemaVersion: 1, id: this.uniqueId(name), name, widgets: [] });
+  }
+
+  /** New dashboard from a preset resolved against this machine, or blank when `preset` is null. */
+  async createFrom(preset: Dashboard | null, name: string) {
+    const id = this.uniqueId(name);
+    if (preset && !telemetry.catalog) throw new Error("Waiting for sensor data from the service. Try again in a moment.");
+    const widgets = preset ? materialize(preset, telemetry.catalog!).widgets : [];
+    await this.add({ schemaVersion: 1, id, name, widgets });
+    return id;
   }
 
   async duplicate(d: Dashboard) {

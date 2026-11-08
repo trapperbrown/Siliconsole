@@ -155,6 +155,7 @@
     "opacity": 1,
     "minSizePx": 160,
     "minScale": 0.25,
+    "minFitScale": 0.55,
     "maxScale": 1.5,
     "minOpacity": 0.2
   },
@@ -187,6 +188,8 @@
     "maxImportBytes": 4194304
   },
   "ui": {
-    "noticeMs": 2000
+    "noticeMs": 2000,
+    "repoUrl": "https://github.com/trapperbrown/Siliconsole",
+    "latestReleaseApi": "https://api.github.com/repos/trapperbrown/Siliconsole/releases/latest"
   }
 }

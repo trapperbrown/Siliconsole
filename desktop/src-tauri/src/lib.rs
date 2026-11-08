@@ -8,7 +8,7 @@ use std::sync::Mutex;
 
 use tauri::menu::{Menu, MenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, LogicalPosition, LogicalSize, Manager, WindowEvent};
+use tauri::{AppHandle, LogicalPosition, LogicalSize, Manager, WebviewWindow, WebviewWindowBuilder, WindowEvent};
 use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
@@ -27,7 +27,7 @@ pub fn on_settings_changed(app: &AppHandle, previous: &UserSettings, next: &User
         let _ = if next.start_with_windows.unwrap_or(CONFIG.startup.start_with_windows) { launcher.enable() } else { launcher.disable() };
     }
     if serde_json::to_string(&previous.overlay).ok() != serde_json::to_string(&next.overlay).ok() {
-        place_overlay(app, next);
+        place_overlays(app, next, overlay_visible(app));
     }
     monitor::on_settings_changed(app, previous, next);
 }
@@ -40,37 +40,112 @@ fn show_main(app: &AppHandle) {
     }
 }
 
-/// Sizes the overlay from user settings (clamped to the primary monitor) and pins it to the chosen corner.
-fn place_overlay(app: &AppHandle, s: &UserSettings) {
-    let Some(w) = app.get_webview_window("overlay") else { return };
-    let Ok(Some(monitor)) = w.primary_monitor() else { return };
-    let o = s.overlay.clone().unwrap_or_default();
-    let c = &CONFIG.overlay;
-    let scale = monitor.scale_factor();
-    let margin = c.margin_px as f64;
-    let screen = monitor.size().to_logical::<f64>(scale);
-    let min = c.min_size_px as f64;
-    let width = (o.width_px.unwrap_or(c.width_px) as f64).clamp(min, (screen.width - 2.0 * margin).max(min));
-    let height = (o.height_px.unwrap_or(c.height_px) as f64).clamp(min, (screen.height - 2.0 * margin).max(min));
-    let _ = w.set_size(LogicalSize::new(width, height));
-    let corner = o.corner.as_deref().unwrap_or(&c.corner);
-    let x = if corner.ends_with("left") { margin } else { screen.width - width - margin };
-    let y = if corner.starts_with("top") { margin } else { screen.height - height - margin };
-    let origin = monitor.position().to_logical::<f64>(scale);
-    let _ = w.set_position(LogicalPosition::new(origin.x + x, origin.y + y));
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MonitorInfo {
+    name: String,
+    label: String,
+    primary: bool,
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
 }
 
-/// Shows or hides the overlay: borderless, always on top, click-through.
+/// Connected monitors, for the overlay monitor picker. Positions and sizes are in physical pixels.
+#[tauri::command]
+fn list_monitors(app: AppHandle) -> Vec<MonitorInfo> {
+    let primary = app.primary_monitor().ok().flatten().and_then(|m| m.name().cloned());
+    app.available_monitors()
+        .unwrap_or_default()
+        .iter()
+        .enumerate()
+        .map(|(i, m)| MonitorInfo {
+            name: m.name().cloned().unwrap_or_else(|| format!("monitor-{i}")),
+            label: format!("Display {}", i + 1),
+            primary: m.name().cloned() == primary,
+            x: m.position().x,
+            y: m.position().y,
+            width: m.size().width,
+            height: m.size().height,
+        })
+        .collect()
+}
+
+/// The monitors chosen in settings that are plugged in, or the primary monitor if none are.
+fn overlay_monitors(app: &AppHandle, s: &UserSettings) -> Vec<tauri::Monitor> {
+    let wanted = s.overlay.as_ref().and_then(|o| o.monitors.clone()).unwrap_or_default();
+    let picked: Vec<_> = app.available_monitors().unwrap_or_default().into_iter().filter(|m| m.name().is_some_and(|n| wanted.contains(n))).collect();
+    if picked.is_empty() { app.primary_monitor().ok().flatten().into_iter().collect() } else { picked }
+}
+
+/// Overlay window i: "overlay" from tauri.conf.json, then "overlay-1", "overlay-2"... cloned from its config.
+fn overlay_window(app: &AppHandle, i: usize) -> Option<WebviewWindow> {
+    let label = if i == 0 { "overlay".to_string() } else { format!("overlay-{i}") };
+    if let Some(w) = app.get_webview_window(&label) {
+        return Some(w);
+    }
+    let mut conf = app.config().app.windows.iter().find(|w| w.label == "overlay")?.clone();
+    conf.label = label;
+    WebviewWindowBuilder::from_config(app, &conf).ok()?.build().ok()
+}
+
+fn overlay_windows(app: &AppHandle) -> Vec<WebviewWindow> {
+    app.webview_windows().into_iter().filter(|(label, _)| label.starts_with("overlay")).map(|(_, w)| w).collect()
+}
+
+fn overlay_visible(app: &AppHandle) -> bool {
+    overlay_windows(app).iter().any(|w| w.is_visible().unwrap_or(false))
+}
+
+/// One overlay per chosen monitor, sized from settings (clamped to that monitor) and pinned to the chosen corner.
+/// Overlays on monitors no longer chosen are closed. With `show`, all of them are shown click-through.
+/// Runs on its own thread: on Windows, creating a window from the main thread (sync commands, event handlers,
+/// the hotkey callback) deadlocks, while other threads hand creation to the event loop safely.
+fn place_overlays(app: &AppHandle, s: &UserSettings, show: bool) {
+    let (app, s) = (app.clone(), s.clone());
+    std::thread::spawn(move || {
+        let monitors = overlay_monitors(&app, &s);
+        let o = s.overlay.clone().unwrap_or_default();
+        let c = &CONFIG.overlay;
+        for (i, monitor) in monitors.iter().enumerate() {
+            let Some(w) = overlay_window(&app, i) else { continue };
+            let scale = monitor.scale_factor();
+            let margin = c.margin_px as f64;
+            let screen = monitor.size().to_logical::<f64>(scale);
+            let min = c.min_size_px as f64;
+            let width = (o.width_px.unwrap_or(c.width_px) as f64).clamp(min, (screen.width - 2.0 * margin).max(min));
+            let height = (o.height_px.unwrap_or(c.height_px) as f64).clamp(min, (screen.height - 2.0 * margin).max(min));
+            let _ = w.set_size(LogicalSize::new(width, height));
+            let corner = o.corner.as_deref().unwrap_or(&c.corner);
+            let x = if corner.ends_with("left") { margin } else { screen.width - width - margin };
+            let y = if corner.starts_with("top") { margin } else { screen.height - height - margin };
+            let origin = monitor.position().to_logical::<f64>(scale);
+            let _ = w.set_position(LogicalPosition::new(origin.x + x, origin.y + y));
+            if show {
+                let _ = w.show();
+                let _ = w.set_always_on_top(true);
+                let _ = w.set_ignore_cursor_events(true);
+            }
+        }
+        for w in overlay_windows(&app) {
+            let index = w.label().strip_prefix("overlay-").and_then(|n| n.parse().ok()).unwrap_or(0);
+            if index >= monitors.len() {
+                let _ = w.close();
+            }
+        }
+    });
+}
+
+/// Shows or hides the overlay on every chosen monitor: borderless, always on top, click-through.
 fn toggle_overlay(app: &AppHandle) {
-    let Some(w) = app.get_webview_window("overlay") else { return };
-    if w.is_visible().unwrap_or(false) {
-        let _ = w.hide();
+    if overlay_visible(app) {
+        overlay_windows(app).iter().for_each(|w| {
+            let _ = w.hide();
+        });
         return;
     }
-    place_overlay(app, &app.state::<storage::SettingsState>().get());
-    let _ = w.show();
-    let _ = w.set_always_on_top(true);
-    let _ = w.set_ignore_cursor_events(true);
+    place_overlays(app, &app.state::<storage::SettingsState>().get(), true);
 }
 
 #[tauri::command]
@@ -138,6 +213,7 @@ pub fn run() {
             monitor::test_alert,
             monitor::csv_status,
             toggle_overlay_cmd,
+            list_monitors,
         ])
         .setup(|app| {
             let handle = app.handle().clone();

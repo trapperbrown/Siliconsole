@@ -192,6 +192,7 @@ pub struct OverlayConfig {
     pub min_scale: f64,
     pub max_scale: f64,
     pub min_opacity: f64,
+    pub min_fit_scale: f64,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -263,6 +264,8 @@ pub struct UserSettings {
     pub starters_created: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub overlay: Option<OverlaySettings>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tour_seen: Option<bool>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -294,12 +297,16 @@ pub struct FilesConfig {
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UiConfig {
+    pub latest_release_api: String,
     pub notice_ms: i64,
+    pub repo_url: String,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct OverlaySettings {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub monitors: Option<Vec<String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub width_px: Option<i64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -320,6 +327,8 @@ pub struct Dashboard {
     pub schema_version: i64,
     pub id: String,
     pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     pub widgets: Vec<Widget>,
 }
 
@@ -370,6 +379,8 @@ pub struct SensorQuery {
     pub name_pattern: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub exclude_pattern: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hardware_name_pattern: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub limit: Option<i64>,
     pub expand: String,

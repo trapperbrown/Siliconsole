@@ -1,0 +1,33 @@
+{
+  "$schema": "../schemas/dashboard.schema.json",
+  "schemaVersion": 1,
+  "id": "compact",
+  "name": "Compact overlay",
+  "description": "Eight key numbers in two slim rows. Made for the in-game overlay.",
+  "widgets": [
+    { "id": "gpu-temp", "type": "bigNumber", "x": 0, "y": 0, "w": 6, "h": 3, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["GpuNvidia", "GpuAmd", "GpuIntel"], "sensorTypes": ["Temperature"], "namePattern": "^GPU Core$", "limit": 1, "expand": "all" },
+      "settings": { "label": "GPU Temp", "decimals": 0, "warning": 75, "critical": 85 } },
+    { "id": "gpu-load", "type": "bigNumber", "x": 6, "y": 0, "w": 6, "h": 3, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["GpuNvidia", "GpuAmd", "GpuIntel"], "sensorTypes": ["Load"], "namePattern": "^GPU Core$", "limit": 1, "expand": "all" },
+      "settings": { "label": "GPU Load", "decimals": 0 } },
+    { "id": "cpu-temp", "type": "bigNumber", "x": 12, "y": 0, "w": 6, "h": 3, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["Cpu"], "sensorTypes": ["Temperature"], "namePattern": "Package|Tctl", "limit": 1, "expand": "all" },
+      "settings": { "label": "CPU Temp", "decimals": 0, "warning": 80, "critical": 90 } },
+    { "id": "cpu-load", "type": "bigNumber", "x": 18, "y": 0, "w": 6, "h": 3, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["Cpu"], "sensorTypes": ["Load"], "namePattern": "^CPU Total$", "limit": 1, "expand": "all" },
+      "settings": { "label": "CPU Load", "decimals": 0 } },
+    { "id": "gpu-power", "type": "bigNumber", "x": 0, "y": 3, "w": 6, "h": 3, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["GpuNvidia", "GpuAmd", "GpuIntel"], "sensorTypes": ["Power"], "namePattern": "^GPU (Package|Power|Core)$", "limit": 1, "expand": "all" },
+      "settings": { "label": "GPU Power", "decimals": 0 } },
+    { "id": "cpu-power", "type": "bigNumber", "x": 6, "y": 3, "w": 6, "h": 3, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["Cpu"], "sensorTypes": ["Power"], "namePattern": "Package", "limit": 1, "expand": "all" },
+      "settings": { "label": "CPU Power", "decimals": 0 } },
+    { "id": "vram", "type": "bigNumber", "x": 12, "y": 3, "w": 6, "h": 3, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["GpuNvidia", "GpuAmd", "GpuIntel"], "sensorTypes": ["SmallData"], "namePattern": "^GPU Memory Used$", "limit": 1, "expand": "all" },
+      "settings": { "label": "VRAM Used", "decimals": 0 } },
+    { "id": "ram", "type": "bigNumber", "x": 18, "y": 3, "w": 6, "h": 3, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["Memory"], "hardwareNamePattern": "^(?!Virtual)", "sensorTypes": ["Load"], "namePattern": "^Memory$", "limit": 1, "expand": "all" },
+      "settings": { "label": "RAM", "decimals": 0, "warning": 85, "critical": 95 } }
+  ]
+}

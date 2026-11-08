@@ -1,8 +1,9 @@
 # Siliconsole
 
 Windows hardware info and sensor monitor for PC gamers and enthusiasts: a CPU-Z style System Info page,
-an HWiNFO style Sensors tree, drag-and-drop dashboards, swappable themes, a click-through overlay,
-threshold alerts and CSV logging.
+an HWiNFO style Sensors tree, drag-and-drop dashboards (with a preset wizard: Gaming, Thermals, Storage, CPU, GPU,
+Memory and network, Power, Compact overlay), swappable themes, a click-through overlay on any or all monitors,
+threshold alerts, CSV logging, a first-run tour and an in-app Guide.
 
 ## Install
 
@@ -146,8 +147,8 @@ docs/TESTING.md                 manual test steps
 
 ## Out of scope
 
-No fan control, overclocking, RGB, FPS capture, cloud sync, accounts, telemetry, network access, auto-update,
-or non-Windows support.
+No fan control, overclocking, RGB, FPS capture, cloud sync, accounts, telemetry, auto-update, or non-Windows support.
+The only network request is "Check for updates", which asks the GitHub API for the newest release when the user clicks it.
 
 ## License
 

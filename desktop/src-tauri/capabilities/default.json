@@ -2,6 +2,6 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main and overlay windows",
-  "windows": ["main", "overlay"],
+  "windows": ["main", "overlay", "overlay-*"],
   "permissions": ["core:default"]
 }

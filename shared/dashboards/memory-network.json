@@ -1,0 +1,33 @@
+{
+  "$schema": "../schemas/dashboard.schema.json",
+  "schemaVersion": 1,
+  "id": "memory-network",
+  "name": "Memory and network",
+  "description": "RAM and VRAM use, memory temperatures, and download and upload speed for each network adapter.",
+  "widgets": [
+    { "id": "ram-load", "type": "radialGauge", "x": 0, "y": 0, "w": 4, "h": 6, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["Memory"], "hardwareNamePattern": "^(?!Virtual)", "sensorTypes": ["Load"], "namePattern": "^Memory$", "limit": 1, "expand": "all" },
+      "settings": { "label": "RAM", "decimals": 0, "min": 0, "max": 100, "warning": 85, "critical": 95 } },
+    { "id": "ram-used", "type": "bigNumber", "x": 4, "y": 0, "w": 4, "h": 3, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["Memory"], "hardwareNamePattern": "^(?!Virtual)", "sensorTypes": ["Data"], "namePattern": "^Memory Used$", "limit": 1, "expand": "all" },
+      "settings": { "label": "RAM Used", "decimals": 1 } },
+    { "id": "ram-free", "type": "bigNumber", "x": 4, "y": 3, "w": 4, "h": 3, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["Memory"], "hardwareNamePattern": "^(?!Virtual)", "sensorTypes": ["Data"], "namePattern": "^Memory Available$", "limit": 1, "expand": "all" },
+      "settings": { "label": "RAM Free", "decimals": 1 } },
+    { "id": "commit", "type": "radialGauge", "x": 8, "y": 0, "w": 4, "h": 6, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["Memory"], "hardwareNamePattern": "^Virtual", "sensorTypes": ["Load"], "namePattern": "^Memory$", "limit": 1, "expand": "all" },
+      "settings": { "label": "Virtual Memory", "decimals": 0, "min": 0, "max": 100, "warning": 85, "critical": 95 } },
+    { "id": "vram-used", "type": "bigNumber", "x": 12, "y": 0, "w": 4, "h": 3, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["GpuNvidia", "GpuAmd", "GpuIntel"], "sensorTypes": ["SmallData"], "namePattern": "^GPU Memory Used$", "limit": 1, "expand": "all" },
+      "settings": { "label": "VRAM Used", "decimals": 0 } },
+    { "id": "vram-load", "type": "linearBar", "x": 12, "y": 3, "w": 4, "h": 3, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["GpuNvidia", "GpuAmd", "GpuIntel"], "sensorTypes": ["Load"], "namePattern": "^GPU Memory$", "limit": 1, "expand": "all" },
+      "settings": { "label": "VRAM", "decimals": 0, "min": 0, "max": 100, "warning": 90, "critical": 97 } },
+    { "id": "dimm-temps", "type": "lineChart", "x": 16, "y": 0, "w": 8, "h": 6, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["Memory"], "sensorTypes": ["Temperature"], "namePattern": "^DIMM #\\d+$", "limit": 8, "expand": "all" },
+      "settings": { "label": "RAM Temps", "decimals": 1, "historySeconds": 300 } },
+    { "id": "network", "type": "lineChart", "x": 0, "y": 6, "w": 24, "h": 8, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["Network"], "hardwareNamePattern": "^(?!.*(vEthernet|vSwitch|Loopback|Bluetooth|-QoS|-WFP|-Native)|Local)", "sensorTypes": ["Throughput"], "namePattern": "^(Download|Upload) Speed$", "limit": 6, "expand": "all" },
+      "settings": { "label": "Network", "decimals": 1, "historySeconds": 300 } }
+  ]
+}

@@ -66,8 +66,12 @@ function Chart({ ids, historySeconds, min, max, sparkline, compact }: { ids: str
           {},
           ...ids.map((id, i) => {
             const color = paletteColor(i);
+            const name = telemetry.sensors.get(id)?.name ?? id;
+            // Same-named sensors on different hardware (two network adapters) get the hardware name added.
+            const dup = ids.some((o) => o !== id && telemetry.sensors.get(o)?.name === name);
+            const hw = telemetry.hardware.get(telemetry.sensors.get(id)?.hardwareId ?? "")?.name;
             return {
-              label: telemetry.sensors.get(id)?.name ?? id,
+              label: dup && hw ? `${hw} ${name}` : name,
               stroke: color,
               width: config.widgetDefaults.chartLineWidthPx,
               fill: sparkline ? withAlpha(color, SPARK_FILL_ALPHA) : undefined,

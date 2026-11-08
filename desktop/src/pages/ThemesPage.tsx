@@ -222,7 +222,7 @@ export function ThemesPage() {
   return (
     <div className="flex h-full flex-col gap-3 overflow-auto">
       <div className="flex flex-wrap items-center gap-2">
-        <button className="btn" disabled={!!editing} onClick={() => setEditing({ ...structuredClone(active), id: uniqueThemeId(`${active.name} custom`), name: `${active.name} custom` })}>
+        <button className="btn" data-tip="Make your own copy of this theme and edit its colors" disabled={!!editing} onClick={() => setEditing({ ...structuredClone(active), id: uniqueThemeId(`${active.name} custom`), name: `${active.name} custom` })}>
           Duplicate and edit
         </button>
         {!isBuiltin(active.id) && (
@@ -230,10 +230,10 @@ export function ThemesPage() {
             Edit
           </button>
         )}
-        <button className="btn" onClick={() => run(async () => { const t = await importTheme(); if (t) await selectTheme(t.id); })}>
+        <button className="btn" data-tip="Load a theme file someone shared with you" onClick={() => run(async () => { const t = await importTheme(); if (t) await selectTheme(t.id); })}>
           Import
         </button>
-        <button className="btn" onClick={() => run(() => exportTheme(active))}>
+        <button className="btn" data-tip="Save this theme to a file you can share" onClick={() => run(() => exportTheme(active))}>
           Export
         </button>
         {!isBuiltin(active.id) && (

@@ -577,7 +577,8 @@
         "minSizePx",
         "minScale",
         "maxScale",
-        "minOpacity"
+        "minOpacity",
+        "minFitScale"
       ],
       "properties": {
         "hotkey": {
@@ -623,6 +624,11 @@
           "type": "number",
           "minimum": 0,
           "maximum": 1
+        },
+        "minFitScale": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Smallest scale fit mode shrinks to; below it whole widgets are hidden, lowest first."
         }
       }
     },
@@ -795,6 +801,9 @@
         },
         "overlay": {
           "$ref": "#/$defs/OverlaySettings"
+        },
+        "tourSeen": {
+          "type": "boolean"
         }
       }
     },
@@ -872,12 +881,21 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "noticeMs"
+        "noticeMs",
+        "repoUrl",
+        "latestReleaseApi"
       ],
       "properties": {
+        "latestReleaseApi": {
+          "description": "GitHub API URL for the newest release, used only when the user clicks Check for updates. Its origin must be allowed in the CSP connect-src in tauri.conf.json.",
+          "type": "string"
+        },
         "noticeMs": {
           "type": "integer",
           "minimum": 0
+        },
+        "repoUrl": {
+          "type": "string"
         }
       }
     },
@@ -896,6 +914,11 @@
       "additionalProperties": false,
       "required": [],
       "properties": {
+        "monitors": {
+          "description": "Monitor names (as Windows reports them) that show the overlay. Empty or missing means the primary monitor.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
         "widthPx": {
           "type": "integer",
           "minimum": 1

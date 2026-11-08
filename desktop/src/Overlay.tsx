@@ -19,19 +19,30 @@ export function overlayOptions(s: ReturnType<typeof useSettings>) {
   };
 }
 
-/** Grid height in CSS px at scale 1. Row height is fixed, so this does not depend on width. */
-function contentHeight(d: Dashboard) {
+/** Height in CSS px at scale 1 of the grid down to a given row. Row height is fixed, so width does not matter. */
+function rowsPx(rows: number) {
   const g = config.dashboards;
-  const rows = d.widgets.reduce((m, w) => Math.max(m, w.y + w.h), 0);
-  return rows * g.rowHeightPx + Math.max(0, rows - 1) * g.marginPx;
+  return rows <= 0 ? 0 : rows * g.rowHeightPx + (rows - 1) * g.marginPx;
 }
+const bottomPx = (d: Dashboard) => rowsPx(d.widgets.reduce((m, w) => Math.max(m, w.y + w.h), 0));
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 /**
- * The always-on-top, click-through overlay window. With "fit" on, the scale is chosen so every row of
- * the dashboard fits the window height; otherwise the user's fixed scale is used.
+ * Picks the scale and the widgets that fit a window `height` px tall. Fit mode shrinks the dashboard, but never
+ * below overlay.minFitScale so text stays readable. Widgets that still would not fit are hidden whole, lowest
+ * first, so nothing is ever cut in half. Put the widgets you care about most at the top.
  */
+export function fitOverlay(d: Dashboard, height: number, o: { fit: boolean; scale: number }) {
+  const c = config.overlay;
+  let scale = o.fit ? clamp(height / Math.max(1, bottomPx(d)), c.minFitScale, c.maxScale) : clamp(o.scale, c.minScale, c.maxScale);
+  const shown = { ...d, widgets: d.widgets.filter((w) => rowsPx(w.y + w.h) <= height / scale + 0.5) };
+  // Hiding widgets frees space, so in fit mode grow back to fill the window.
+  if (o.fit && shown.widgets.length) scale = clamp(height / bottomPx(shown), c.minFitScale, c.maxScale);
+  return { scale, shown, hidden: d.widgets.length - shown.widgets.length };
+}
+
+/** The always-on-top, click-through overlay window. */
 export function Overlay() {
   const store = useDashboards();
   const s = useSettings();
@@ -45,15 +56,14 @@ export function Overlay() {
 
   const d = store.get(s.overlayDashboardId ?? undefined) ?? store.active();
   if (!d) return null;
-  const c = config.overlay;
-  const needed = contentHeight(d);
-  const scale = clamp(o.fit && needed > 0 ? height / needed : o.scale, c.minScale, c.maxScale);
+  const { scale, shown } = fitOverlay(d, height, o);
+  if (!shown.widgets.length) return <p className="panel m-1 p-2 text-sm">Overlay too small for any widget. Make it bigger in Settings.</p>;
   return (
     <div
       className="overflow-hidden"
       style={{ width: `${100 / scale}%`, height: `${100 / scale}%`, transform: `scale(${scale})`, transformOrigin: "top left", opacity: o.opacity }}
     >
-      <DashboardGrid dashboard={d} compact />
+      <DashboardGrid dashboard={shown} compact />
     </div>
   );
 }

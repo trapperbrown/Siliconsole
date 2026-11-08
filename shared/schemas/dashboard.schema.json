@@ -13,6 +13,7 @@
         "schemaVersion": { "type": "integer", "minimum": 1, "maximum": 1 },
         "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" },
         "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "description": { "type": "string", "maxLength": 200 },
         "widgets": { "type": "array", "maxItems": 256, "items": { "$ref": "#/$defs/Widget" } }
       }
     },
@@ -61,6 +62,7 @@
         "sensorTypes": { "type": "array", "items": { "type": "string" } },
         "namePattern": { "type": "string" },
         "excludePattern": { "type": "string" },
+        "hardwareNamePattern": { "type": "string", "description": "Regex the hardware name must match. Use a negative lookahead to exclude." },
         "limit": { "type": "integer", "minimum": 1 },
         "expand": { "type": "string", "enum": ["all", "each"] }
       }

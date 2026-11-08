@@ -176,6 +176,7 @@ public sealed record OverlayConfig
     public required double MinScale { get; init; }
     public required double MaxScale { get; init; }
     public required double MinOpacity { get; init; }
+    public required double MinFitScale { get; init; }
 }
 
 public sealed record TrayConfig
@@ -228,6 +229,7 @@ public sealed record UserSettings
     public CsvLogSettings? CsvLog { get; init; }
     public bool? StartersCreated { get; init; }
     public OverlaySettings? Overlay { get; init; }
+    public bool? TourSeen { get; init; }
 }
 
 public sealed record AlertRule
@@ -252,11 +254,14 @@ public sealed record FilesConfig
 
 public sealed record UiConfig
 {
+    public required string LatestReleaseApi { get; init; }
     public required int NoticeMs { get; init; }
+    public required string RepoUrl { get; init; }
 }
 
 public sealed record OverlaySettings
 {
+    public IReadOnlyList<string>? Monitors { get; init; }
     public int? WidthPx { get; init; }
     public int? HeightPx { get; init; }
     public double? Scale { get; init; }
@@ -270,6 +275,7 @@ public sealed record Dashboard
     public required int SchemaVersion { get; init; }
     public required string Id { get; init; }
     public required string Name { get; init; }
+    public string? Description { get; init; }
     public required IReadOnlyList<Widget> Widgets { get; init; }
 }
 
@@ -304,6 +310,7 @@ public sealed record SensorQuery
     public IReadOnlyList<string>? SensorTypes { get; init; }
     public string? NamePattern { get; init; }
     public string? ExcludePattern { get; init; }
+    public string? HardwareNamePattern { get; init; }
     public int? Limit { get; init; }
     public required string Expand { get; init; }
 }

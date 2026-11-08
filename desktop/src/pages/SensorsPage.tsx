@@ -65,7 +65,7 @@ export function SensorsPage({ onPin }: { onPin?: (sensorId: string) => void }) {
           <button className="btn" onClick={() => setCollapsed(new Set(groups.map((g) => g.hw.id)))}>
             Collapse all
           </button>
-          <button className="btn" onClick={() => telemetry.resetStats()}>
+          <button className="btn" data-tip="Start min, max and average over from the current values" onClick={() => telemetry.resetStats()}>
             Reset min/max
           </button>
         </div>
@@ -120,7 +120,7 @@ const SensorRow = memo(function SensorRow({ sensor, depth, onPin }: { sensor: Se
       <span className="text-right tabular-nums text-muted">{f(live?.avg)}</span>
       <span className="text-center">
         {onPin && (
-          <button className="text-muted hover:text-accent" title="Pin to active dashboard" aria-label={`Pin ${sensor.name} to the active dashboard`} onClick={() => onPin(sensor.id)}>
+          <button className="text-muted hover:text-accent" data-tip="Add this sensor to the current dashboard" aria-label={`Pin ${sensor.name} to the active dashboard`} onClick={() => onPin(sensor.id)}>
             ＋
           </button>
         )}

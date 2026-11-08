@@ -3,6 +3,7 @@
   "schemaVersion": 1,
   "id": "storage",
   "name": "Storage",
+  "description": "Drive health, read and write speed, temperatures and space used.",
   "widgets": [
     { "id": "health", "type": "storageHealth", "x": 0, "y": 0, "w": 8, "h": 10, "sensorIds": [],
       "sensorQuery": { "hardwareTypes": ["Storage"], "sensorTypes": ["Temperature", "Level", "Load", "Data"], "excludePattern": "Warning Temperature|Critical Temperature|Temperature #", "expand": "all" },

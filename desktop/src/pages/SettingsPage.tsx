@@ -7,8 +7,9 @@ import { ipc } from "../lib/ipc";
 import { settings, useSettings } from "../lib/settings";
 import { useDashboards } from "../lib/dashboards";
 import { useTelemetryMeta } from "../lib/telemetry";
-import { overlayOptions } from "../Overlay";
+import { fitOverlay, overlayOptions } from "../Overlay";
 import type { OverlayCorner, OverlaySettings } from "../generated/schema-types";
+import { UpdateCheck } from "../components/UpdateCheck";
 
 const CORNERS: [OverlayCorner, string][] = [
   ["top-left", "Top left"],
@@ -45,6 +46,64 @@ function SensorSelect({ value, onChange, label, allowNone }: { value: string | n
         </optgroup>
       ))}
     </select>
+  );
+}
+
+interface MonitorInfo {
+  name: string;
+  label: string;
+  primary: boolean;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/** The monitors drawn the way Windows arranges them. Click a screen to show or hide the overlay on it. */
+function MonitorPicker({ value, onChange }: { value: string[]; onChange: (names: string[]) => void }) {
+  const [monitors, setMonitors] = useState<MonitorInfo[]>([]);
+  useEffect(() => {
+    invoke<MonitorInfo[]>("list_monitors").then(setMonitors).catch(() => setMonitors([]));
+  }, []);
+  if (!monitors.length) return <span className="text-muted">No monitors found</span>;
+  // Names saved for a monitor that is unplugged are ignored; with none left, the primary monitor is used.
+  const live = value.filter((n) => monitors.some((m) => m.name === n));
+  const isOn = (m: MonitorInfo) => (live.length ? live.includes(m.name) : m.primary);
+  const on = monitors.filter(isOn).map((m) => m.name);
+  const toggle = (m: MonitorInfo) => {
+    const next = on.includes(m.name) ? on.filter((n) => n !== m.name) : [...on, m.name];
+    if (next.length) onChange(next); // at least one monitor always shows the overlay
+  };
+  const minX = Math.min(...monitors.map((m) => m.x));
+  const minY = Math.min(...monitors.map((m) => m.y));
+  const spanX = Math.max(...monitors.map((m) => m.x + m.width)) - minX;
+  const spanY = Math.max(...monitors.map((m) => m.y + m.height)) - minY;
+  return (
+    <div className="flex min-w-0 flex-1 items-center gap-2">
+      <div className="relative h-24 max-w-full flex-1" style={{ aspectRatio: `${spanX} / ${spanY}`, flexGrow: 0, flexBasis: "auto" }}>
+        {monitors.map((m) => (
+          <button
+            key={m.name}
+            aria-pressed={isOn(m)}
+            data-tip={`${isOn(m) ? "Hide" : "Show"} the overlay on ${m.label}`}
+            className={`absolute flex flex-col items-center justify-center rounded-theme border text-xs ${isOn(m) ? "border-accent bg-accent text-accent-text" : "border-border bg-surface text-muted hover:border-accent"}`}
+            style={{ left: `${((m.x - minX) / spanX) * 100}%`, top: `${((m.y - minY) / spanY) * 100}%`, width: `calc(${(m.width / spanX) * 100}% - 3px)`, height: `calc(${(m.height / spanY) * 100}% - 3px)` }}
+            onClick={() => toggle(m)}
+          >
+            <span className="font-semibold">{m.label.replace("Display ", "")}</span>
+            <span className="text-[10px]">
+              {m.width}x{m.height}
+              {m.primary ? " main" : ""}
+            </span>
+          </button>
+        ))}
+      </div>
+      {monitors.length > 1 && (
+        <button className="btn ml-auto" data-tip="Show the overlay on every monitor" onClick={() => onChange(monitors.map((m) => m.name))}>
+          All
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -109,6 +168,8 @@ export function SettingsPage() {
   const ov = overlayOptions(s);
   const setOverlay = (patch: OverlaySettings) => save({ overlay: { ...(s.overlay ?? {}), ...patch } });
   const px = (text: string) => Math.max(config.overlay.minSizePx, parseInt(text, 10) || config.overlay.minSizePx);
+  const overlayDash = store.get(s.overlayDashboardId ?? undefined) ?? store.active();
+  const overlayHidden = overlayDash ? fitOverlay(overlayDash, ov.heightPx, ov).hidden : 0;
   const defaultAlertSensor = t.catalog?.sensors.find((x) => x.sensorType === "Temperature")?.id;
 
   return (
@@ -124,7 +185,7 @@ export function SettingsPage() {
           ))}
         </div>
         <label className="flex items-center gap-3 text-sm">
-          <span className="w-40 text-muted">Polling interval</span>
+          <span className="w-40 text-muted" data-tip="How often sensors are read. Faster updates use a little more CPU.">Polling interval</span>
           <input
             type="range"
             min={config.polling.minIntervalMs}
@@ -144,15 +205,16 @@ export function SettingsPage() {
           <input type="checkbox" checked={s.startWithWindows ?? config.startup.startWithWindows} onChange={(e) => save({ startWithWindows: e.target.checked })} />
           Start with Windows
         </label>
+        <UpdateCheck />
       </Section>
 
       <Section title="Tray and overlay">
         <div className="flex items-center gap-3 text-sm">
-          <span className="w-40 shrink-0 text-muted">Tray icon value</span>
+          <span className="w-40 shrink-0 text-muted" data-tip="Shows this sensor as digits in the Windows tray icon.">Tray icon value</span>
           <SensorSelect value={s.traySensorId ?? null} allowNone label="Tray sensor" onChange={(id) => save({ traySensorId: id })} />
         </div>
         <div className="flex items-center gap-3 text-sm">
-          <span className="w-40 shrink-0 text-muted">Overlay dashboard</span>
+          <span className="w-40 shrink-0 text-muted" data-tip="Which dashboard the in-game overlay shows. The Compact overlay preset is made for this.">Overlay dashboard</span>
           <select className="field flex-1" value={s.overlayDashboardId ?? ""} onChange={(e) => save({ overlayDashboardId: e.target.value || null })} aria-label="Overlay dashboard">
             <option value="">Active dashboard</option>
             {store.list.map((d) => (
@@ -176,6 +238,12 @@ export function SettingsPage() {
           <input className="field w-24" type="number" min={config.overlay.minSizePx} defaultValue={ov.heightPx} key={`h${ov.heightPx}`} onBlur={(e) => setOverlay({ heightPx: px(e.target.value) })} aria-label="Overlay height" />
         </div>
         <div className="flex items-center gap-3 text-sm">
+          <span className="w-40 shrink-0 text-muted" data-tip="Click a screen to turn the overlay on or off for it. Each chosen screen gets its own copy.">
+            Show overlay on
+          </span>
+          <MonitorPicker value={s.overlay?.monitors ?? []} onChange={(monitors) => setOverlay({ monitors })} />
+        </div>
+        <div className="flex items-center gap-3 text-sm">
           <span className="w-40 shrink-0 text-muted">Overlay position</span>
           <select className="field flex-1" value={ov.corner} onChange={(e) => setOverlay({ corner: e.target.value as OverlayCorner })} aria-label="Overlay position">
             {CORNERS.map(([v, label]) => (
@@ -187,7 +255,8 @@ export function SettingsPage() {
         </div>
         <label className="flex items-center gap-3 text-sm">
           <input type="checkbox" checked={ov.fit} onChange={(e) => setOverlay({ fit: e.target.checked })} />
-          Scale the dashboard to fit the overlay
+          <span data-tip="Shrinks the dashboard to fit the overlay, down to a readable minimum. Below that, widgets are hidden instead.">
+          Scale the dashboard to fit the overlay</span>
         </label>
         <label className="flex items-center gap-3 text-sm">
           <span className="w-40 shrink-0 text-muted">Overlay scale</span>
@@ -199,6 +268,11 @@ export function SettingsPage() {
           <input type="range" className="flex-1" min={config.overlay.minOpacity} max={1} step={0.05} value={ov.opacity} onChange={(e) => setOverlay({ opacity: parseFloat(e.target.value) })} />
           <span className="w-12 text-right tabular-nums">{Math.round(ov.opacity * 100)}%</span>
         </label>
+        <p className={`text-xs ${overlayHidden ? "text-warning" : "text-muted"}`}>
+          {overlayHidden
+            ? `At this size ${overlayHidden} widget${overlayHidden === 1 ? " is" : "s are"} hidden. The overlay hides whole widgets, lowest on the dashboard first, instead of cutting them off. Make the overlay taller or move important widgets up.`
+            : "Every widget fits. If the overlay gets too small, whole widgets are hidden, lowest on the dashboard first."}
+        </p>
       </Section>
 
       <Section title="Alerts">

@@ -3,6 +3,7 @@
   "schemaVersion": 1,
   "id": "thermals",
   "name": "Thermals",
+  "description": "Every temperature on one chart, all fans, and a small chart for each temperature sensor.",
   "widgets": [
     { "id": "all-temps", "type": "lineChart", "x": 0, "y": 0, "w": 16, "h": 9, "sensorIds": [],
       "sensorQuery": { "sensorTypes": ["Temperature"], "excludePattern": "Limit|Resolution|Warning Temperature|Critical Temperature|Distance", "limit": 8, "expand": "all" },

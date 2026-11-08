@@ -44,13 +44,13 @@ export function SystemInfoPage() {
         </div>
         <div className="ml-auto flex items-center gap-2">
           {note && <span className="text-sm text-muted">{note}</span>}
-          <button className="btn" onClick={copy} disabled={!report}>
+          <button className="btn" data-tip="Copy this tab as a table you can paste into Discord or a forum" onClick={copy} disabled={!report}>
             Copy
           </button>
-          <button className="btn" onClick={() => exportAs("json")} disabled={!info}>
+          <button className="btn" data-tip="Save everything to a JSON file" onClick={() => exportAs("json")} disabled={!info}>
             Export JSON
           </button>
-          <button className="btn" onClick={() => exportAs("md")} disabled={!info}>
+          <button className="btn" data-tip="Save everything as a readable Markdown report" onClick={() => exportAs("md")} disabled={!info}>
             Export Markdown
           </button>
         </div>

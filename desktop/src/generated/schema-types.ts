@@ -157,6 +157,7 @@ export interface OverlayConfig {
   minScale: number;
   maxScale: number;
   minOpacity: number;
+  minFitScale: number;
 }
 
 export interface TrayConfig {
@@ -204,6 +205,7 @@ export interface UserSettings {
   csvLog?: CsvLogSettings;
   startersCreated?: boolean;
   overlay?: OverlaySettings;
+  tourSeen?: boolean;
 }
 
 /** Thresholds are stored in the sensor's native unit (Celsius for temperatures). */
@@ -225,13 +227,16 @@ export interface FilesConfig {
 }
 
 export interface UiConfig {
+  latestReleaseApi: string;
   noticeMs: number;
+  repoUrl: string;
 }
 
 export type OverlayCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
 /** Per-user overlay geometry. Missing fields fall back to the overlay section of defaults.json. */
 export interface OverlaySettings {
+  monitors?: string[];
   widthPx?: number;
   heightPx?: number;
   scale?: number;
@@ -244,6 +249,7 @@ export interface Dashboard {
   schemaVersion: number;
   id: string;
   name: string;
+  description?: string;
   widgets: Widget[];
 }
 
@@ -278,6 +284,7 @@ export interface SensorQuery {
   sensorTypes?: string[];
   namePattern?: string;
   excludePattern?: string;
+  hardwareNamePattern?: string;
   limit?: number;
   expand: "all" | "each";
 }

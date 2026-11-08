@@ -3,6 +3,7 @@
   "schemaVersion": 1,
   "id": "gaming",
   "name": "Gaming",
+  "description": "GPU and CPU temperatures, load and clocks, history charts and per-core load.",
   "widgets": [
     { "id": "gpu-temp", "type": "radialGauge", "x": 0, "y": 0, "w": 4, "h": 6, "sensorIds": [],
       "sensorQuery": { "hardwareTypes": ["GpuNvidia", "GpuAmd", "GpuIntel"], "sensorTypes": ["Temperature"], "namePattern": "^GPU Core$", "limit": 1, "expand": "all" },
