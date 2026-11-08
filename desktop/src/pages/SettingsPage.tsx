@@ -1,6 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import type { AlertRule, CsvLogSettings } from "../generated/schema-types";
+import type { AlertRule, AppDashboardRule, CsvLogSettings } from "../generated/schema-types";
 import { config } from "../lib/config";
 import { convert, toNative, unitLabel } from "../lib/format";
 import { ipc } from "../lib/ipc";
@@ -103,6 +103,48 @@ function MonitorPicker({ value, onChange }: { value: string[]; onChange: (names:
           All
         </button>
       )}
+    </div>
+  );
+}
+
+/** "While game.exe runs, the overlay shows Gaming." The first matching rule wins. */
+function AppRules({ rules, onChange }: { rules: AppDashboardRule[]; onChange: (r: AppDashboardRule[]) => void }) {
+  const store = useDashboards();
+  const [running, setRunning] = useState<string[]>([]);
+  const refresh = () => invoke<string[]>("running_apps").then(setRunning);
+  useEffect(() => void refresh(), []);
+  const set = (i: number, patch: Partial<AppDashboardRule>) => onChange(rules.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  return (
+    <div className="flex flex-col gap-2 text-sm">
+      <span className="text-muted" data-tip="Type a program's file name, like game.exe, or pick one that is running now. Checked every few seconds.">
+        Per-app dashboards: while a program runs, the overlay switches to its dashboard, then switches back when it closes.
+      </span>
+      <datalist id="running-apps">
+        {running.map((n) => (
+          <option key={n} value={n} />
+        ))}
+      </datalist>
+      {rules.map((r, i) => (
+        <div key={`${i}-${r.exe}`} className="flex items-center gap-2">
+          <input className="field flex-1" list="running-apps" placeholder="game.exe" defaultValue={r.exe} onFocus={refresh} onBlur={(e) => e.target.value.trim() && set(i, { exe: e.target.value.trim() })} aria-label="Program file name" />
+          <span className="text-muted">shows</span>
+          <select className="field flex-1" value={r.dashboardId} onChange={(e) => set(i, { dashboardId: e.target.value })} aria-label="Dashboard for this program">
+            {store.list.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+          <button className="btn" onClick={() => onChange(rules.filter((_, j) => j !== i))}>
+            Remove
+          </button>
+        </div>
+      ))}
+      <div>
+        <button className="btn" disabled={!store.list.length} onClick={() => onChange([...rules, { exe: "game.exe", dashboardId: store.list[0].id }])}>
+          Add program
+        </button>
+      </div>
     </div>
   );
 }
@@ -273,10 +315,11 @@ export function SettingsPage() {
             ? `At this size ${overlayHidden} widget${overlayHidden === 1 ? " is" : "s are"} hidden. The overlay hides whole widgets, lowest on the dashboard first, instead of cutting them off. Make the overlay taller or move important widgets up.`
             : "Every widget fits. If the overlay gets too small, whole widgets are hidden, lowest on the dashboard first."}
         </p>
+        <AppRules rules={s.appDashboards ?? []} onChange={(appDashboards) => save({ appDashboards })} />
       </Section>
 
       <Section title="Alerts">
-        <p className="text-sm text-muted">Windows notifications when a sensor crosses a limit, at most once every {config.alerts.cooldownSeconds} seconds per sensor.</p>
+        <p className="text-sm text-muted">Windows notifications when a sensor crosses a limit, at most once every {config.alerts.cooldownSeconds} seconds per sensor. Past alerts are listed on the History page.</p>
         {alerts.map((rule, i) => (
           <AlertRow
             key={`${i}-${rule.sensorId}`}

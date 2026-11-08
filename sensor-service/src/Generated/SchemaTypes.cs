@@ -32,6 +32,7 @@ public sealed record AppConfig
     public required SystemReportConfig SystemReport { get; init; }
     public required PawnioConfig Pawnio { get; init; }
     public required FilesConfig Files { get; init; }
+    public required HistoryConfig History { get; init; }
     public required UiConfig Ui { get; init; }
 }
 
@@ -229,6 +230,7 @@ public sealed record UserSettings
     public CsvLogSettings? CsvLog { get; init; }
     public bool? StartersCreated { get; init; }
     public OverlaySettings? Overlay { get; init; }
+    public IReadOnlyList<AppDashboardRule>? AppDashboards { get; init; }
     public bool? TourSeen { get; init; }
 }
 
@@ -250,6 +252,20 @@ public sealed record CsvLogSettings
 public sealed record FilesConfig
 {
     public required int MaxImportBytes { get; init; }
+}
+
+public sealed record HistoryConfig
+{
+    public required int MaxAlerts { get; init; }
+    public required int MaxLogBytes { get; init; }
+    public required int MaxChartPoints { get; init; }
+    public required int AppWatchMs { get; init; }
+}
+
+public sealed record AppDashboardRule
+{
+    public required string Exe { get; init; }
+    public required string DashboardId { get; init; }
 }
 
 public sealed record UiConfig

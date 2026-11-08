@@ -1,0 +1,177 @@
+# Builds the installer with scripts/build-installer.ps1, optionally signs it through SignPath,
+# and publishes a GitHub release with the body from scripts/release-notes.ps1.
+#
+# Trigger: pushing a tag like v1.2.3 (scripts/release.ps1 does this). The annotated tag message is the
+# release notes. Run it by hand (Actions tab, "Run workflow") for a dry run: it builds and uploads the
+# installer as a workflow artifact but publishes nothing.
+#
+# Signing runs only when the SIGNPATH_API_TOKEN secret exists (and, for manual runs, the "sign" box is ticked).
+# Setup: docs/SIGNPATH_APPLICATION.md.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      sign:
+        description: Also submit the installer to SignPath (needs SIGNPATH_API_TOKEN; asks for approval there)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  SIGNPATH_PROJECT_SLUG: siliconsole
+  SIGNPATH_SIGNING_POLICY_SLUG: release-signing
+  SIGNPATH_ARTIFACT_CONFIGURATION_SLUG: initial
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      signed: ${{ steps.pick.outputs.signed }}
+    env:
+      SIGN: ${{ secrets.SIGNPATH_API_TOKEN != '' && (github.event_name == 'push' || inputs.sign) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read version
+        id: version
+        shell: pwsh
+        run: |
+          $version = (Get-Content desktop/src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$version") {
+            throw "Tag $env:GITHUB_REF_NAME does not match tauri.conf.json version $version. Use scripts/release.ps1 to bump and tag."
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/cache@v6
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('sensor-service/**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 12.11.2
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: desktop/pnpm-lock.yaml
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: desktop/src-tauri -> target
+
+      # Same script as a local build: types, service tests and publish, notices, pnpm check, Tauri NSIS bundle.
+      - name: Build installer
+        shell: pwsh
+        run: ./scripts/build-installer.ps1
+
+      - name: Upload unsigned installer
+        id: upload-unsigned
+        uses: actions/upload-artifact@v7
+        with:
+          name: installer-unsigned
+          path: desktop/src-tauri/target/release/bundle/nsis/Siliconsole_${{ steps.version.outputs.version }}_x64-setup.exe
+          if-no-files-found: error
+
+      # GitHub artifacts are zipped, so the SignPath artifact configuration has a <zip-file> root.
+      - name: Sign installer (SignPath)
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3.0
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ env.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ env.SIGNPATH_SIGNING_POLICY_SLUG }}
+          artifact-configuration-slug: ${{ env.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          parameters: |
+            version: "${{ steps.version.outputs.version }}"
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 3600
+          output-artifact-directory: signed
+
+      - name: Pick installer
+        id: pick
+        shell: pwsh
+        run: |
+          $name = "Siliconsole_${{ steps.version.outputs.version }}_x64-setup.exe"
+          $signed = Join-Path signed $name
+          if ($env:SIGN -eq 'true') {
+            $sig = Get-AuthenticodeSignature $signed
+            if ($sig.Status -ne 'Valid') { throw "Signed installer has signature status $($sig.Status)" }
+            "Signed by: $($sig.SignerCertificate.Subject)"
+            $path = $signed; $isSigned = 'true'
+          } else {
+            $path = "desktop/src-tauri/target/release/bundle/nsis/$name"; $isSigned = 'false'
+          }
+          New-Item -ItemType Directory -Force release | Out-Null
+          Copy-Item $path release/
+          "SHA-256: $((Get-FileHash "release/$name" -Algorithm SHA256).Hash.ToLower())"
+          "signed=$isSigned" >> $env:GITHUB_OUTPUT
+
+      - name: Upload release installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: installer-release
+          path: release/*.exe
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ github.ref_name }}
+      VERSION: ${{ needs.build.outputs.version }}
+      SIGNED: ${{ needs.build.outputs.signed }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: installer-release
+          path: release
+
+      # actions/checkout can leave the tag lightweight, so fetch the annotated tag to read its message.
+      - name: Read release notes from the tag message
+        run: |
+          git fetch --force origin "+refs/tags/${TAG}:refs/tags/${TAG}"
+          if [ "$(git cat-file -t "$TAG")" = "tag" ]; then
+            git for-each-ref "refs/tags/${TAG}" --format='%(contents)' > notes.md
+          else
+            echo "Bug fixes and improvements." > notes.md
+          fi
+          cat notes.md
+
+      - name: Create GitHub release
+        shell: pwsh
+        run: |
+          if (gh release view $env:TAG 2>$null) { "Release $env:TAG already exists (published by release.ps1 -Local?); skipping."; exit 0 }
+          $exe = Get-Item "release/Siliconsole_$($env:VERSION)_x64-setup.exe"
+          $sha = (Get-FileHash $exe.FullName -Algorithm SHA256).Hash.ToLower()
+          ./scripts/release-notes.ps1 -Notes (Get-Content notes.md -Raw) -InstallerName $exe.Name -Sha256 $sha -Signed:($env:SIGNED -eq 'true') -OutFile body.md
+          Get-Content body.md
+          gh release create $env:TAG $exe.FullName --title "Siliconsole $($env:VERSION)" --notes-file body.md --verify-tag
+          if ($LASTEXITCODE) { throw 'gh release create failed' }

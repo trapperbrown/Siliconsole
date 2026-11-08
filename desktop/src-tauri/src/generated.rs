@@ -32,6 +32,7 @@ pub struct AppConfig {
     pub system_report: SystemReportConfig,
     pub pawnio: PawnioConfig,
     pub files: FilesConfig,
+    pub history: HistoryConfig,
     pub ui: UiConfig,
 }
 
@@ -265,6 +266,8 @@ pub struct UserSettings {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub overlay: Option<OverlaySettings>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub app_dashboards: Option<Vec<AppDashboardRule>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tour_seen: Option<bool>,
 }
 
@@ -292,6 +295,22 @@ pub struct CsvLogSettings {
 #[serde(rename_all = "camelCase")]
 pub struct FilesConfig {
     pub max_import_bytes: i64,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HistoryConfig {
+    pub max_alerts: i64,
+    pub max_log_bytes: i64,
+    pub max_chart_points: i64,
+    pub app_watch_ms: i64,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppDashboardRule {
+    pub exe: String,
+    pub dashboard_id: String,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

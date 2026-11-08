@@ -19,6 +19,7 @@ export const TOUR: TourStep[] = [
   { page: "dashboards", target: "dash-overlay", title: "In-game overlay", body: `Pick which dashboard the overlay shows. Press ${hotkey} in a game to show or hide it. Clicks pass straight through it.` },
   { page: "system", target: "nav-system", title: "System Info", body: "Your CPU, motherboard, memory, graphics card, drives and Windows details. Copy or export them to share." },
   { page: "sensors", target: "nav-sensors", title: "Sensors", body: "Every reading with its minimum, maximum and average. Click + next to a sensor to add it to the current dashboard." },
+  { page: "history", target: "nav-history", title: "History", body: "Charts of past logging sessions, and a list of every alert that fired, even ones you missed." },
   { page: "themes", target: "nav-themes", title: "Themes", body: "Change the look. Duplicate a theme to make your own colors and background." },
   { page: "settings", target: "nav-settings", title: "Settings", body: "Units, alerts, CSV logging, the tray icon value, and the overlay: its size, corner, and which monitors show it." },
   { page: "guide", target: "nav-guide", title: "Need help later?", body: "The Guide answers common questions, like why some sensors are missing, and has the app's version and license." },

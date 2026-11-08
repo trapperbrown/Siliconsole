@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChipIcon, DashboardIcon, GearIcon, HelpIcon, PaletteIcon, PulseIcon } from "./components/Icons";
+import { ChipIcon, DashboardIcon, GearIcon, HelpIcon, HistoryIcon, PaletteIcon, PulseIcon } from "./components/Icons";
 import { StatusIndicator } from "./components/StatusIndicator";
 import { Tooltips } from "./components/Tooltips";
 import { Tour } from "./components/Tour";
@@ -8,6 +8,7 @@ import { dashboards } from "./lib/dashboards";
 import { settings } from "./lib/settings";
 import { DashboardsPage } from "./pages/DashboardsPage";
 import { GuidePage } from "./pages/GuidePage";
+import { HistoryPage } from "./pages/HistoryPage";
 import { SensorsPage } from "./pages/SensorsPage";
 import { SystemInfoPage } from "./pages/SystemInfoPage";
 import { SettingsPage } from "./pages/SettingsPage";
@@ -17,6 +18,7 @@ const PAGES = [
   { id: "dashboards", label: "Dashboards", tip: "Your live sensor dashboards", Icon: DashboardIcon },
   { id: "system", label: "System Info", tip: "CPU, motherboard, memory, GPU, drives and Windows details", Icon: ChipIcon },
   { id: "sensors", label: "Sensors", tip: "Every sensor reading with min, max and average", Icon: PulseIcon },
+  { id: "history", label: "History", tip: "Charts of past logging sessions and alerts that fired", Icon: HistoryIcon },
   { id: "themes", label: "Themes", tip: "Change the app's colors and background", Icon: PaletteIcon },
   { id: "settings", label: "Settings", tip: "Units, alerts, logging, tray and overlay", Icon: GearIcon },
   { id: "guide", label: "Guide", tip: "Help, the tour, and about this app", Icon: HelpIcon },
@@ -78,6 +80,7 @@ export function App() {
           {page === "system" && <SystemInfoPage />}
           {page === "sensors" && <SensorsPage onPin={pin} />}
           {page === "dashboards" && <DashboardsPage />}
+          {page === "history" && <HistoryPage />}
           {page === "themes" && <ThemesPage />}
           {page === "settings" && <SettingsPage />}
           {page === "guide" && <GuidePage onTour={() => setTouring(true)} />}

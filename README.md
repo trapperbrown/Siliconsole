@@ -19,6 +19,7 @@ Download `Siliconsole_<version>_x64-setup.exe` from the [Releases](../../release
     PawnIO's official signed setup.
 - **Uninstall** from Settings, Apps. This removes the app and the service. PawnIO stays installed (other tools may use
   it); remove it separately from Apps if you want.
+- **Code signing policy:** see [docs/CODE_SIGNING.md](docs/CODE_SIGNING.md) (what gets signed, who approves, privacy).
 
 ## Disclaimer
 
@@ -86,13 +87,6 @@ One command builds and tests everything and produces the installer:
 
 The installer is written to `desktop/src-tauri/target/release/bundle/nsis/`.
 
-To ship a new version (bumps the version, builds, tests, commits, tags, pushes and publishes a GitHub release):
-
-```powershell
-./scripts/release.ps1 -Version 1.0.1 -Notes "What changed."
-./scripts/release.ps1 -Version 1.0.1 -DryRun   # build only, nothing published
-```
-
 Step by step:
 
 ```powershell
@@ -105,6 +99,32 @@ node ../scripts/gen-notices.mjs                       # THIRD_PARTY_NOTICES.md f
 pnpm check                                            # schemas, WCAG contrast, no color literals, no em dashes, no listeners
 pnpm tauri build                                      # NSIS installer
 ```
+
+## Release
+
+Releases are built, signed and published by GitHub Actions ([`.github/workflows/release.yml`](.github/workflows/release.yml)).
+To ship a new version:
+
+```powershell
+./scripts/release.ps1 -Version 1.0.1 -Notes "What changed."
+```
+
+This checks the tree is clean, bumps the version, runs the service tests and `pnpm check` locally (fast fail), commits
+"Release v1.0.1", creates an annotated tag `v1.0.1` whose message is the notes, and pushes. The workflow then runs
+`scripts/build-installer.ps1` on a GitHub-hosted runner, signs the installer through SignPath when the
+`SIGNPATH_API_TOKEN` secret is set (otherwise it publishes the unsigned installer), and creates the GitHub release.
+The release body comes from `scripts/release-notes.ps1`: the tag message, install notes and the installer's SHA-256.
+Notes can be multi-line Markdown (use a PowerShell here-string).
+
+```powershell
+./scripts/release.ps1 -Version 1.0.1 -DryRun                  # bump and check only, files restored, nothing pushed
+./scripts/release.ps1 -Version 1.0.1 -Local -Notes "..."      # old flow: build and publish from this machine
+./scripts/release.ps1 -Version 1.0.1 -Local -DryRun           # full local build of 1.0.1, nothing published
+```
+
+To try the CI build without releasing, run the Release workflow by hand from the Actions tab: it builds and uploads the
+installer as a workflow artifact and publishes nothing. Code signing setup is in
+[docs/SIGNPATH_APPLICATION.md](docs/SIGNPATH_APPLICATION.md); the winget manifest is in [packaging/winget](packaging/winget).
 
 ## Develop
 
@@ -143,6 +163,9 @@ desktop/src                     React UI
 desktop/scripts/check-frontend.mjs  repository checks
 scripts/                        service install/uninstall, notices, installer build
 docs/TESTING.md                 manual test steps
+docs/CODE_SIGNING.md            code signing policy
+.github/workflows/release.yml   CI build, signing and GitHub release
+packaging/winget/               winget manifests
 ```
 
 ## Out of scope

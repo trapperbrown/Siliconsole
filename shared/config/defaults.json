@@ -187,6 +187,12 @@
   "files": {
     "maxImportBytes": 4194304
   },
+  "history": {
+    "maxAlerts": 200,
+    "maxLogBytes": 52428800,
+    "maxChartPoints": 2000,
+    "appWatchMs": 3000
+  },
   "ui": {
     "noticeMs": 2000,
     "repoUrl": "https://github.com/trapperbrown/Siliconsole",

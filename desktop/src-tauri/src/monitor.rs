@@ -1,6 +1,6 @@
 //! Rust-side frame consumers: tray value, threshold alerts and CSV logging. They live in Rust so
 //! they keep working while the window is hidden in the tray and its webview is throttled.
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::fs::File;
 use std::io::{BufWriter, Write};
 use std::path::PathBuf;
@@ -8,10 +8,10 @@ use std::sync::{LazyLock, Mutex};
 use std::time::{Duration, Instant};
 
 use tauri::image::Image;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_notification::NotificationExt;
 
-use crate::config::CONFIG;
+use crate::config::{app_data_dir, CONFIG};
 use crate::generated::{SensorCatalogMessage, SensorFrameMessage, Theme, UserSettings};
 use crate::pipe::ConnState;
 use crate::storage::SettingsState;
@@ -22,6 +22,7 @@ struct SensorMeta {
     name: String,
     sensor_type: String,
     hardware: String,
+    hardware_type: String,
 }
 
 struct CsvLog {
@@ -37,7 +38,16 @@ pub struct Monitor {
     last_alert: Mutex<HashMap<String, Instant>>,
     csv: Mutex<Option<CsvLog>>,
     csv_error: Mutex<Option<String>>,
+    alert_log: Mutex<Option<VecDeque<AlertEntry>>>,
 }
+
+#[derive(Clone, serde::Serialize, serde::Deserialize)]
+pub struct AlertEntry {
+    time: i64,
+    text: String,
+}
+
+pub const EVENT_ALERTS: &str = "alerts://changed";
 
 /// Default tray text color when no theme has chosen one: the default theme's accent.
 static DEFAULT_TRAY_COLOR: LazyLock<String> = LazyLock::new(|| {
@@ -77,12 +87,13 @@ pub fn on_status(app: &AppHandle, state: ConnState) {
 }
 
 pub fn on_catalog(app: &AppHandle, cat: SensorCatalogMessage) {
-    let hw: HashMap<_, _> = cat.hardware.iter().map(|h| (h.id.clone(), h.name.clone())).collect();
+    let hw: HashMap<_, _> = cat.hardware.iter().map(|h| (h.id.clone(), (h.name.clone(), h.hardware_type.clone()))).collect();
     let map = cat
         .sensors
         .into_iter()
         .map(|s| {
-            let meta = SensorMeta { name: s.name, hardware: hw.get(&s.hardware_id).cloned().unwrap_or_default(), sensor_type: s.sensor_type };
+            let (hardware, hardware_type) = hw.get(&s.hardware_id).cloned().unwrap_or_default();
+            let meta = SensorMeta { name: s.name, hardware, hardware_type, sensor_type: s.sensor_type };
             (s.id, meta)
         })
         .collect();
@@ -93,7 +104,7 @@ pub fn on_frame(app: &AppHandle, frame: &SensorFrameMessage) {
     let settings = app.state::<SettingsState>().get();
     let values: HashMap<&str, f64> = frame.values.iter().filter_map(|v| v.value.map(|x| (v.id.as_str(), x))).collect();
     update_tray(app, &settings, &values);
-    check_alerts(app, &settings, &values);
+    check_alerts(app, &settings, &values, frame.timestamp);
     write_csv(app, &settings, frame.timestamp, &values);
 }
 
@@ -176,22 +187,52 @@ fn reset_tray(app: &AppHandle) {
     }
 }
 
+/// Windows cuts tray tooltips at 127 characters.
+const TOOLTIP_MAX_CHARS: usize = 127;
+
+/// Hottest temperature of each CPU and GPU, e.g. "CPU 54 °C", so the tooltip is useful without a tray sensor.
+fn headline_temps(sensors: &HashMap<String, SensorMeta>, values: &HashMap<&str, f64>, unit: &str) -> Vec<String> {
+    let mut hottest: Vec<(&str, &str, f64)> = vec![];
+    for (id, m) in sensors {
+        let label = match m.hardware_type.as_str() {
+            "Cpu" => "CPU",
+            t if t.starts_with("Gpu") => "GPU",
+            _ => continue,
+        };
+        if m.sensor_type != "Temperature" {
+            continue;
+        }
+        let Some(&v) = values.get(id.as_str()) else { continue };
+        match hottest.iter_mut().find(|h| h.1 == m.hardware) {
+            Some(h) => h.2 = h.2.max(v),
+            None => hottest.push((label, &m.hardware, v)),
+        }
+    }
+    hottest.sort_by(|a, b| a.0.cmp(b.0).then(a.1.cmp(b.1)));
+    hottest.iter().map(|(label, _, v)| format!("{label} {}", format("Temperature", *v, unit))).collect()
+}
+
 fn update_tray(app: &AppHandle, s: &UserSettings, values: &HashMap<&str, f64>) {
-    let Some(id) = s.tray_sensor_id.as_deref() else { return };
     let Some(tray) = app.tray_by_id(TRAY_ID) else { return };
     let monitor = app.state::<Monitor>();
     let sensors = monitor.sensors.lock().unwrap();
-    let (Some(meta), Some(v)) = (sensors.get(id), values.get(id)) else { return };
     let unit = temp_unit(s);
-    let shown = convert(&meta.sensor_type, *v, unit).round() as i64;
-    let color = hex_rgb(s.tray_text_color.as_deref().unwrap_or(&DEFAULT_TRAY_COLOR));
-    let _ = tray.set_icon(Some(render_icon(&shown.to_string(), color)));
-    let _ = tray.set_tooltip(Some(&format!("{}: {}", meta.name, format(&meta.sensor_type, *v, unit))));
+    let mut lines = vec![];
+    let picked = s.tray_sensor_id.as_deref().and_then(|id| Some((sensors.get(id)?, values.get(id)?)));
+    if let Some((meta, v)) = picked {
+        let shown = convert(&meta.sensor_type, *v, unit).round() as i64;
+        let color = hex_rgb(s.tray_text_color.as_deref().unwrap_or(&DEFAULT_TRAY_COLOR));
+        let _ = tray.set_icon(Some(render_icon(&shown.to_string(), color)));
+        lines.push(format!("{}: {}", meta.name, format(&meta.sensor_type, *v, unit)));
+    }
+    lines.extend(headline_temps(&sensors, values, unit));
+    let text = if lines.is_empty() { CONFIG.tray.fallback_tooltip.clone() } else { lines.join("\n") };
+    let _ = tray.set_tooltip(Some(&text.chars().take(TOOLTIP_MAX_CHARS).collect::<String>()));
 }
 
 // ---------- alerts ----------
 
-fn check_alerts(app: &AppHandle, s: &UserSettings, values: &HashMap<&str, f64>) {
+fn check_alerts(app: &AppHandle, s: &UserSettings, values: &HashMap<&str, f64>, ts: i64) {
     let Some(rules) = &s.alerts else { return };
     let m = app.state::<Monitor>();
     let unit = temp_unit(s);
@@ -221,8 +262,55 @@ fn check_alerts(app: &AppHandle, s: &UserSettings, values: &HashMap<&str, f64>) 
             dir,
             format(&meta.sensor_type, limit, unit)
         );
+        drop(sensors);
         notify(app, &body);
+        record_alert(app, ts, body);
     }
+}
+
+// ---------- alert history: alert-history.json next to settings.json ----------
+
+fn alert_log_path() -> PathBuf {
+    app_data_dir().join("alert-history.json")
+}
+
+fn with_alert_log<T>(app: &AppHandle, f: impl FnOnce(&mut VecDeque<AlertEntry>) -> T) -> T {
+    let m = app.state::<Monitor>();
+    let mut guard = m.alert_log.lock().unwrap();
+    let log = guard.get_or_insert_with(|| {
+        std::fs::read_to_string(alert_log_path()).ok().and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default()
+    });
+    f(log)
+}
+
+fn save_alert_log(app: &AppHandle, log: &VecDeque<AlertEntry>) {
+    if let Ok(json) = serde_json::to_string(log) {
+        let _ = std::fs::create_dir_all(app_data_dir());
+        let _ = std::fs::write(alert_log_path(), json);
+    }
+    let _ = app.emit(EVENT_ALERTS, ());
+}
+
+fn record_alert(app: &AppHandle, time: i64, text: String) {
+    with_alert_log(app, |log| {
+        log.push_front(AlertEntry { time, text });
+        log.truncate(CONFIG.history.max_alerts as usize);
+        save_alert_log(app, log);
+    });
+}
+
+/// Newest first.
+#[tauri::command]
+pub fn alert_history(app: AppHandle) -> Vec<AlertEntry> {
+    with_alert_log(&app, |log| log.iter().cloned().collect())
+}
+
+#[tauri::command]
+pub fn clear_alert_history(app: AppHandle) {
+    with_alert_log(&app, |log| {
+        log.clear();
+        save_alert_log(&app, log);
+    });
 }
 
 fn notify(app: &AppHandle, body: &str) {
@@ -359,4 +447,52 @@ pub fn csv_status(app: AppHandle) -> CsvStatus {
     let path = m.csv.lock().unwrap().as_ref().map(|l| l.path.to_string_lossy().into_owned());
     let error = m.csv_error.lock().unwrap().clone();
     CsvStatus { path, error }
+}
+
+// ---------- reading past CSV logs for the History page ----------
+
+#[derive(serde::Serialize)]
+pub struct LogFile {
+    name: String,
+    bytes: u64,
+    modified: i64,
+}
+
+/// Only files we write ourselves: the configured folder, our prefix, .csv, no path parts.
+fn log_path(app: &AppHandle, name: Option<&str>) -> Result<PathBuf, String> {
+    let s = app.state::<SettingsState>().get();
+    let folder = s.csv_log.and_then(|c| c.folder).filter(|f| std::path::Path::new(f).is_absolute()).ok_or("Choose a log folder in Settings first.")?;
+    let Some(name) = name else { return Ok(PathBuf::from(folder)) };
+    let ok = name.starts_with(&CONFIG.csv_log.file_prefix) && name.ends_with(".csv") && !name.contains(['/', '\\', ':']) && !name.contains("..");
+    if ok { Ok(PathBuf::from(folder).join(name)) } else { Err(format!("not a {} log file: {name}", CONFIG.app_name)) }
+}
+
+/// Newest first.
+#[tauri::command]
+pub fn list_logs(app: AppHandle) -> Result<Vec<LogFile>, String> {
+    let dir = log_path(&app, None)?;
+    let Ok(entries) = std::fs::read_dir(&dir) else { return Ok(vec![]) };
+    let mut files: Vec<LogFile> = entries
+        .flatten()
+        .filter_map(|e| {
+            let name = e.file_name().into_string().ok()?;
+            log_path(&app, Some(&name)).ok()?;
+            let meta = e.metadata().ok()?;
+            let modified = meta.modified().ok()?.duration_since(std::time::UNIX_EPOCH).ok()?.as_millis() as i64;
+            Some(LogFile { name, bytes: meta.len(), modified })
+        })
+        .collect();
+    files.sort_by(|a, b| b.modified.cmp(&a.modified));
+    Ok(files)
+}
+
+#[tauri::command]
+pub fn read_log(app: AppHandle, name: String) -> Result<String, String> {
+    let path = log_path(&app, Some(&name))?;
+    let len = std::fs::metadata(&path).map_err(|e| e.to_string())?.len();
+    let max = CONFIG.history.max_log_bytes as u64;
+    if len > max {
+        return Err(format!("{name} is larger than {} MB, too big to chart.", max / 1_048_576));
+    }
+    std::fs::read_to_string(&path).map(|s| s.trim_start_matches('\u{FEFF}').to_string()).map_err(|e| e.to_string())
 }

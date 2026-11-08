@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.12.0.schema.json
+
+PackageIdentifier: TrapperBrown.Siliconsole
+PackageVersion: 1.2.1
+PackageLocale: en-US
+Publisher: trapperbrown
+PublisherUrl: https://github.com/trapperbrown
+PublisherSupportUrl: https://github.com/trapperbrown/Siliconsole/issues
+Author: trapperbrown
+PackageName: Siliconsole
+PackageUrl: https://github.com/trapperbrown/Siliconsole
+License: MIT
+LicenseUrl: https://github.com/trapperbrown/Siliconsole/blob/main/LICENSE
+Copyright: Siliconsole contributors
+ShortDescription: Hardware info and sensor monitor for Windows, with dashboards and a game overlay.
+Description: |-
+  Siliconsole is a free, open source hardware info and sensor monitor for PC gamers and enthusiasts:
+  a CPU-Z style System Info page, an HWiNFO style Sensors tree, drag-and-drop dashboards, swappable themes,
+  a click-through overlay, threshold alerts and CSV logging. It only reads sensors (no fan control or overclocking).
+  The installer adds a background Windows service that runs as LocalSystem to read hardware sensors, and can
+  optionally download the PawnIO driver after asking.
+Moniker: siliconsole
+Tags:
+- hardware-monitor
+- sensors
+- temperature
+- system-info
+- overlay
+- gaming
+- cpu
+- gpu
+ReleaseNotesUrl: https://github.com/trapperbrown/Siliconsole/releases/tag/v1.2.1
+ManifestType: defaultLocale
+ManifestVersion: 1.12.0

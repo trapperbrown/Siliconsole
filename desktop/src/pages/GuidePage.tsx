@@ -1,4 +1,5 @@
 import { getVersion } from "@tauri-apps/api/app";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useEffect, useState, type ReactNode } from "react";
 import { config } from "../lib/config";
 import { ChevronIcon } from "../components/Icons";
@@ -22,7 +23,7 @@ const TOPICS: { q: string; a: ReactNode }[] = [
       <>
         Press <kbd>{hotkey}</kbd> to show or hide a small always-on-top window that clicks pass through. It shows the dashboard you picked with <b>Use for overlay</b>. The{" "}
         <b>Compact overlay</b> preset is made for it. In Settings you can choose which monitors show it (click each screen, or All) and change its size, corner, scale and opacity. If it is too small, whole widgets are hidden, lowest on the dashboard
-        first, so put the ones you care about at the top. Games must run in borderless or windowed mode for the overlay to appear over them.
+        first, so put the ones you care about at the top. Under <b>Per-app dashboards</b> you can have it switch to a different dashboard while a certain game or program runs. Games must run in borderless or windowed mode for the overlay to appear over them.
       </>
     ),
   },
@@ -49,7 +50,7 @@ const TOPICS: { q: string; a: ReactNode }[] = [
     a: (
       <>
         Settings, Alerts: add a sensor and a limit, and Windows shows a notification when it is crossed. Settings, CSV logging: pick a folder and sensors, then turn logging on to get a file you can
-        open in Excel.
+        open in Excel. The History page charts those files and lists every alert that fired, so you can check what happened while you were away.
       </>
     ),
   },
@@ -83,7 +84,6 @@ const TOPICS: { q: string; a: ReactNode }[] = [
 
 export function GuidePage({ onTour }: { onTour: () => void }) {
   const [version, setVersion] = useState("");
-  const [copied, setCopied] = useState(false);
   useEffect(() => {
     getVersion().then(setVersion).catch(() => setVersion(""));
   }, []);
@@ -125,10 +125,10 @@ export function GuidePage({ onTour }: { onTour: () => void }) {
           <span className="selectable min-w-0 flex-1 truncate">{config.ui.repoUrl}</span>
           <button
             className="btn"
-            data-tip="Copy the project's web address, to get updates or report a problem"
-            onClick={() => navigator.clipboard.writeText(config.ui.repoUrl).then(() => setCopied(true))}
+            data-tip="Opens the project page in your browser, to get updates or report a problem"
+            onClick={() => openUrl(config.ui.repoUrl)}
           >
-            {copied ? "Copied" : "Copy link"}
+            Open in browser
           </button>
         </div>
         <UpdateCheck />

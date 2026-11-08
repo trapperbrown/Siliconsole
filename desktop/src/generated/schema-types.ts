@@ -27,6 +27,7 @@ export interface AppConfig {
   systemReport: SystemReportConfig;
   pawnio: PawnioConfig;
   files: FilesConfig;
+  history: HistoryConfig;
   ui: UiConfig;
 }
 
@@ -205,6 +206,7 @@ export interface UserSettings {
   csvLog?: CsvLogSettings;
   startersCreated?: boolean;
   overlay?: OverlaySettings;
+  appDashboards?: AppDashboardRule[];
   tourSeen?: boolean;
 }
 
@@ -224,6 +226,20 @@ export interface CsvLogSettings {
 
 export interface FilesConfig {
   maxImportBytes: number;
+}
+
+/** Alert history, the History page's CSV reader, and per-app overlay dashboards. */
+export interface HistoryConfig {
+  maxAlerts: number;
+  maxLogBytes: number;
+  maxChartPoints: number;
+  appWatchMs: number;
+}
+
+/** While a program with this file name is running, the overlay shows this dashboard. */
+export interface AppDashboardRule {
+  exe: string;
+  dashboardId: string;
 }
 
 export interface UiConfig {

@@ -33,6 +33,7 @@
         "systemReport",
         "pawnio",
         "files",
+        "history",
         "ui"
       ],
       "properties": {
@@ -121,6 +122,9 @@
         },
         "files": {
           "$ref": "#/$defs/FilesConfig"
+        },
+        "history": {
+          "$ref": "#/$defs/HistoryConfig"
         },
         "ui": {
           "$ref": "#/$defs/UiConfig"
@@ -802,6 +806,12 @@
         "overlay": {
           "$ref": "#/$defs/OverlaySettings"
         },
+        "appDashboards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AppDashboardRule"
+          }
+        },
         "tourSeen": {
           "type": "boolean"
         }
@@ -874,6 +884,54 @@
         "maxImportBytes": {
           "type": "integer",
           "minimum": 1024
+        }
+      }
+    },
+    "HistoryConfig": {
+      "description": "Alert history, the History page's CSV reader, and per-app overlay dashboards.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxAlerts",
+        "maxLogBytes",
+        "maxChartPoints",
+        "appWatchMs"
+      ],
+      "properties": {
+        "maxAlerts": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxLogBytes": {
+          "type": "integer",
+          "minimum": 1024
+        },
+        "maxChartPoints": {
+          "type": "integer",
+          "minimum": 10
+        },
+        "appWatchMs": {
+          "type": "integer",
+          "minimum": 500
+        }
+      }
+    },
+    "AppDashboardRule": {
+      "description": "While a program with this file name is running, the overlay shows this dashboard.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "exe",
+        "dashboardId"
+      ],
+      "properties": {
+        "exe": {
+          "type": "string",
+          "maxLength": 260,
+          "pattern": "^[^\\\\/:*?\"<>|]+$"
+        },
+        "dashboardId": {
+          "type": "string"
         }
       }
     },

@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.12.0.schema.json
+
+PackageIdentifier: TrapperBrown.Siliconsole
+PackageVersion: 1.2.1
+InstallerType: nullsoft
+Scope: machine
+ElevationRequirement: elevatesSelf
+InstallModes:
+- interactive
+- silent
+UpgradeBehavior: install
+ProductCode: Siliconsole
+ReleaseDate: 2026-11-08
+AppsAndFeaturesEntries:
+- DisplayName: Siliconsole
+  Publisher: Siliconsole
+  ProductCode: Siliconsole
+Installers:
+- Architecture: x64
+  InstallerUrl: https://github.com/trapperbrown/Siliconsole/releases/download/v1.2.1/Siliconsole_1.2.1_x64-setup.exe
+  InstallerSha256: 9A76AFF2446179B5DCD847733696C2DC32EB18CA4E3A0E18F98D36E76CA5E7BE
+ManifestType: installer
+ManifestVersion: 1.12.0

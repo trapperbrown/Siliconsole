@@ -1,3 +1,4 @@
+mod apps;
 mod config;
 mod generated;
 mod monitor;
@@ -182,6 +183,7 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
@@ -198,6 +200,7 @@ pub fn run() {
         )
         .manage(pipe::Telemetry::default())
         .manage(monitor::Monitor::default())
+        .manage(apps::AppDashboard::default())
         .manage(storage::SettingsState(Mutex::new(storage::load_settings())))
         .invoke_handler(tauri::generate_handler![
             pipe::get_snapshot,
@@ -212,6 +215,12 @@ pub fn run() {
             storage::pick_folder,
             monitor::test_alert,
             monitor::csv_status,
+            monitor::alert_history,
+            monitor::clear_alert_history,
+            monitor::list_logs,
+            monitor::read_log,
+            apps::running_apps,
+            apps::app_dashboard,
             toggle_overlay_cmd,
             list_monitors,
         ])
@@ -222,6 +231,7 @@ pub fn run() {
                 eprintln!("could not register overlay hotkey {}: {e}", CONFIG.overlay.hotkey);
             }
             tauri::async_runtime::spawn(pipe::run(handle.clone()));
+            tauri::async_runtime::spawn(apps::watch(handle.clone()));
 
             let settings = app.state::<storage::SettingsState>().get();
             let minimized = settings.start_minimized.unwrap_or(CONFIG.startup.start_minimized)

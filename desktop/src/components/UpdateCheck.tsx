@@ -1,4 +1,5 @@
 import { getVersion } from "@tauri-apps/api/app";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useState } from "react";
 import { config } from "../lib/config";
 
@@ -20,11 +21,9 @@ export function isNewer(a: string, b: string) {
 /** Asks GitHub for the newest release, only when clicked. Nothing about the user or their PC is sent. */
 export function UpdateCheck() {
   const [state, setState] = useState<State>({ kind: "idle" });
-  const [copied, setCopied] = useState(false);
 
   const check = async () => {
     setState({ kind: "checking" });
-    setCopied(false);
     try {
       const current = await getVersion();
       const res = await fetch(config.ui.latestReleaseApi, { headers: { Accept: "application/vnd.github+json" } });
@@ -51,8 +50,8 @@ export function UpdateCheck() {
             Version {state.latest} is out (you have {state.current}).
           </span>
           <span className="selectable min-w-0 truncate text-muted">{state.url}</span>
-          <button className="btn btn-accent" onClick={() => navigator.clipboard.writeText(state.url).then(() => setCopied(true))} data-tip="Copy the download page link, then paste it into your browser">
-            {copied ? "Copied" : "Copy download link"}
+          <button className="btn btn-accent" onClick={() => openUrl(state.url)} data-tip="Opens the release page in your browser, where you can download the installer">
+            Open download page
           </button>
         </>
       )}

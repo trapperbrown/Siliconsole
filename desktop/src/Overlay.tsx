@@ -1,3 +1,5 @@
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { useEffect, useState } from "react";
 import { DashboardGrid } from "./components/DashboardGrid";
 import type { Dashboard } from "./generated/schema-types";
@@ -54,7 +56,15 @@ export function Overlay() {
     return () => window.removeEventListener("resize", onResize);
   }, []);
 
-  const d = store.get(s.overlayDashboardId ?? undefined) ?? store.active();
+  // A running program from Settings > Overlay > Per-app dashboards wins over the chosen overlay dashboard.
+  const [appDash, setAppDash] = useState<string | null>(null);
+  useEffect(() => {
+    invoke<string | null>("app_dashboard").then(setAppDash);
+    const off = listen<string | null>("overlay://app-dashboard", (e) => setAppDash(e.payload));
+    return () => void off.then((f) => f());
+  }, []);
+
+  const d = store.get(appDash ?? undefined) ?? store.get(s.overlayDashboardId ?? undefined) ?? store.active();
   if (!d) return null;
   const { scale, shown } = fitOverlay(d, height, o);
   if (!shown.widgets.length) return <p className="panel m-1 p-2 text-sm">Overlay too small for any widget. Make it bigger in Settings.</p>;
