@@ -40,7 +40,15 @@ export function DashboardsPage() {
     setEditingWidget(widget);
   };
 
-  const isOverlay = d && userSettings.overlayDashboardId === d.id;
+  // The overlay either shows one chosen dashboard or, with none chosen, follows whichever dashboard is open.
+  const isOverlay = !!d && userSettings.overlayDashboardId === d.id;
+  const hotkey = config.overlay.hotkey.replace("CommandOrControl", "Ctrl");
+  const pinnedName = store.get(userSettings.overlayDashboardId ?? undefined)?.name;
+  const overlayTip = isOverlay
+    ? `The overlay always shows this dashboard. Click to make it follow whichever dashboard is open instead. Toggle the overlay with ${hotkey}.`
+    : pinnedName
+      ? `The overlay shows "${pinnedName}". Click to show this dashboard instead. Toggle the overlay with ${hotkey}.`
+      : `The overlay follows whichever dashboard is open. Click to always show this one. Toggle the overlay with ${hotkey}.`;
 
   return (
     <div className="flex h-full flex-col">
@@ -96,8 +104,15 @@ export function DashboardsPage() {
           <button className="btn" data-tip="Load a dashboard file someone shared with you" onClick={() => run(async () => { const name = await store.importDashboard(); if (name) flash(`Imported ${name}`); })}>
             Import
           </button>
-          <button className={`btn ${isOverlay ? "btn-accent" : ""}`} disabled={!d} onClick={() => d && run(() => settings.update({ overlayDashboardId: d.id }))} data-tour="dash-overlay" data-tip={`Show this dashboard on the always-on-top overlay. Toggle it in games with ${config.overlay.hotkey.replace("CommandOrControl", "Ctrl")}.`}>
-            {isOverlay ? "Overlay dashboard" : "Use for overlay"}
+          <button
+            className={`btn ${isOverlay ? "btn-accent" : ""}`}
+            disabled={!d}
+            aria-pressed={isOverlay}
+            onClick={() => d && run(() => settings.update({ overlayDashboardId: isOverlay ? null : d.id }))}
+            data-tour="dash-overlay"
+            data-tip={overlayTip}
+          >
+            {isOverlay ? "✓ On overlay" : "Use for overlay"}
           </button>
           <button className="btn" disabled={!d} onClick={() => d && confirm(`Delete dashboard "${d.name}"?`) && run(() => store.remove(d.id))}>
             Delete
