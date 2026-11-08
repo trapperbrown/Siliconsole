@@ -1,0 +1,192 @@
+{
+  "$schema": "../schemas/config.schema.json",
+  "appName": "Siliconsole",
+  "appId": "com.siliconsole.desktop",
+  "appDataFolder": "Siliconsole",
+  "service": {
+    "name": "SiliconsoleSensorService",
+    "displayName": "Siliconsole Sensor Service",
+    "description": "Reads hardware sensors for the Siliconsole desktop app over a local named pipe.",
+    "programDataFolder": "Siliconsole",
+    "exeName": "sensor-service.exe",
+    "installSubfolder": "sensor-service",
+    "recoveryRestartDelayMs": 5000
+  },
+  "ipc": {
+    "pipeName": "siliconsole-telemetry",
+    "protocolVersion": 1,
+    "maxMessageBytes": 8388608,
+    "clientQueueCapacity": 64,
+    "maxClients": 8,
+    "handshakeTimeoutMs": 5000,
+    "pipeBufferBytes": 65536
+  },
+  "polling": {
+    "defaultIntervalMs": 1000,
+    "minIntervalMs": 250,
+    "maxIntervalMs": 5000
+  },
+  "ringBufferSamples": 600,
+  "hardwareGroups": {
+    "cpu": true,
+    "gpu": true,
+    "memory": true,
+    "motherboard": true,
+    "controller": true,
+    "storage": true,
+    "network": true,
+    "battery": true,
+    "psu": true
+  },
+  "reconnect": {
+    "initialDelayMs": 500,
+    "maxDelayMs": 10000,
+    "multiplier": 2,
+    "serviceCheckIntervalMs": 5000
+  },
+  "units": {
+    "temperature": "C"
+  },
+  "sensorUnits": {
+    "Voltage": "V",
+    "Current": "A",
+    "Power": "W",
+    "Clock": "MHz",
+    "Temperature": "°C",
+    "Load": "%",
+    "Frequency": "Hz",
+    "Fan": "RPM",
+    "Flow": "L/h",
+    "Control": "%",
+    "Level": "%",
+    "Factor": "",
+    "Data": "GB",
+    "SmallData": "MB",
+    "Throughput": "B/s",
+    "TimeSpan": "s",
+    "Timing": "ns",
+    "Energy": "mWh",
+    "Noise": "dBA",
+    "Conductivity": "µS/cm",
+    "Humidity": "%"
+  },
+  "startup": {
+    "startMinimized": false,
+    "startWithWindows": false,
+    "minimizedArg": "--minimized"
+  },
+  "devServer": {
+    "port": 1420
+  },
+  "window": {
+    "width": 1280,
+    "height": 820,
+    "minWidth": 960,
+    "minHeight": 600
+  },
+  "dashboards": {
+    "defaultDashboardId": "gaming",
+    "starterIds": [
+      "gaming",
+      "thermals",
+      "storage"
+    ],
+    "gridColumns": 24,
+    "rowHeightPx": 28,
+    "marginPx": 8,
+    "newWidgetSize": {
+      "w": 4,
+      "h": 4
+    },
+    "maxSensorsPerWidget": 64,
+    "saveDebounceMs": 400
+  },
+  "widgetDefaults": {
+    "decimals": 0,
+    "historySeconds": 120,
+    "min": 0,
+    "max": 100,
+    "chartLineWidthPx": 2,
+    "gaugeSweepDegrees": 260,
+    "gaugeStrokePx": 10,
+    "heatmapColumns": 60,
+    "fanMaxRpm": 3000
+  },
+  "sensorsPage": {
+    "valueDecimals": 1,
+    "typeDecimals": {
+      "Voltage": 3,
+      "Current": 2,
+      "Clock": 0,
+      "Fan": 0,
+      "Flow": 1,
+      "Data": 2,
+      "SmallData": 0,
+      "Power": 1,
+      "Factor": 2
+    }
+  },
+  "themes": {
+    "defaultThemeId": "midnight",
+    "builtinIds": [
+      "midnight",
+      "frost",
+      "neon-synthwave",
+      "stealth",
+      "carbon",
+      "forge"
+    ],
+    "minContrastRatio": 4.5,
+    "minLargeTextContrastRatio": 3
+  },
+  "alerts": {
+    "cooldownSeconds": 60,
+    "defaultWarning": 80,
+    "defaultCritical": 90
+  },
+  "overlay": {
+    "hotkey": "CommandOrControl+Shift+F10",
+    "scale": 0.6,
+    "widthPx": 520,
+    "heightPx": 360,
+    "marginPx": 16,
+    "fit": true,
+    "corner": "top-right",
+    "opacity": 1,
+    "minSizePx": 160,
+    "minScale": 0.25,
+    "maxScale": 1.5,
+    "minOpacity": 0.2
+  },
+  "tray": {
+    "iconSizePx": 32,
+    "fallbackTooltip": "Siliconsole"
+  },
+  "csvLog": {
+    "intervalMs": 1000,
+    "delimiter": ",",
+    "filePrefix": "Siliconsole",
+    "timestampFormat": "%Y-%m-%d %H:%M:%S"
+  },
+  "serviceLog": {
+    "subfolder": "logs",
+    "fileName": "sensor-service.log",
+    "maxFileBytes": 1048576,
+    "retainedFiles": 3,
+    "minLevel": "Information"
+  },
+  "systemReport": {
+    "fileBaseName": "siliconsole-system-report"
+  },
+  "pawnio": {
+    "serviceName": "PawnIO",
+    "setupUrl": "https://github.com/namazso/PawnIO.Setup/releases/latest/download/PawnIO_setup.exe",
+    "setupSigner": "CN=namazso.eu"
+  },
+  "files": {
+    "maxImportBytes": 4194304
+  },
+  "ui": {
+    "noticeMs": 2000
+  }
+}

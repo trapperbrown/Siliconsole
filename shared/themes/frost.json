@@ -1,0 +1,36 @@
+{
+  "$schema": "../schemas/theme.schema.json",
+  "schemaVersion": 1,
+  "id": "frost",
+  "name": "Frost",
+  "background": {
+    "kind": "gradient",
+    "color": "#eef2f8",
+    "gradientTo": "#dce5f2",
+    "gradientAngleDeg": 160
+  },
+  "surface": "#ffffff",
+  "surfaceOpacity": 0.9,
+  "surfaceBlurPx": 10,
+  "border": "#c5d0e1",
+  "text": "#111a2b",
+  "textMuted": "#475470",
+  "accent": "#1f5fd1",
+  "accentText": "#ffffff",
+  "success": "#11734f",
+  "warning": "#9a5200",
+  "critical": "#bf2236",
+  "chartPalette": [
+    "#1f5fd1",
+    "#11734f",
+    "#9a5200",
+    "#bf2236",
+    "#6b3fc4",
+    "#0a7482",
+    "#b02f74",
+    "#566600"
+  ],
+  "fontFamily": "\"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif",
+  "radiusPx": 10,
+  "glowIntensity": 0
+}

@@ -1,0 +1,111 @@
+# Siliconsole
+
+Windows hardware info and sensor monitor for PC gamers and enthusiasts: a CPU-Z style System Info page,
+an HWiNFO style Sensors tree, drag-and-drop dashboards, swappable themes, a click-through overlay,
+threshold alerts and CSV logging.
+
+## Architecture
+
+Three parts with strict privilege separation:
+
+| Part | Tech | Runs as | Role |
+| --- | --- | --- | --- |
+| `sensor-service/` | C#, .NET 10, LibreHardwareMonitorLib (PawnIO) | Windows Service, LocalSystem | Polls sensors, keeps a ring buffer, collects static system info. Talks only over a local named pipe. |
+| `desktop/` | Tauri 2 (Rust) + React, TypeScript, Vite, Tailwind, uPlot, react-grid-layout | The signed-in user, unprivileged | Rust connects to the pipe and forwards data to the webview as events. Tray, alerts and CSV logging run in Rust. |
+| `shared/` | JSON | n/a | The central config, JSON Schemas, built-in themes and starter dashboard templates. |
+
+- **Pipe:** `\\.\pipe\<ipc.pipeName>`. The ACL allows SYSTEM, interactive users (read/write, but they can't create
+  pipe instances) and the service account. Remote clients are rejected. There is no TCP listener anywhere.
+- **Protocol:** 4 byte little-endian length prefix, then UTF-8 JSON. Message types: `hello`, `system_info`, `sensor_catalog`,
+  `sensor_frame`, `history_request` / `history_response`, `set_interval`. See `shared/schemas/protocol.schema.json`.
+  The service validates every inbound message against that schema and logs rejections.
+- **Sensor ids** are LibreHardwareMonitor `Identifier` strings (for example `/gpu-nvidia/0/temperature/0`), so saved
+  dashboards survive restarts.
+
+## Central config
+
+Every tunable lives in `shared/config/defaults.json`: app name, pipe name, poll interval bounds, ring buffer size,
+units, dashboard grid, widget defaults, default theme, alert cooldown, overlay hotkey and geometry, logging and so on.
+Renaming the product is a one-line change to `appName` (then run the generator below).
+
+`node shared/scripts/gen-types.mjs` turns the schemas into TypeScript (`desktop/src/generated`), C# records
+(`sensor-service/src/Generated`) and Rust structs (`desktop/src-tauri/src/generated.rs`). It also syncs
+`tauri.conf.json` and the installer's `config.nsh` from the config. `pnpm build` runs it automatically.
+
+Per-user settings (theme, units, alerts, logging, overlay size and so on) are saved to `%APPDATA%\Siliconsole\settings.json`.
+Dashboards and custom themes live in `%APPDATA%\Siliconsole\dashboards` and `\themes`.
+
+## Prerequisites
+
+- Windows 11 x64
+- .NET 10 SDK
+- Rust stable, MSVC toolchain (`rustup default stable-x86_64-pc-windows-msvc`), plus Visual Studio Build Tools
+- Node LTS and pnpm
+- PawnIO driver for full sensor coverage (https://github.com/namazso/PawnIO.Setup)
+
+## Build
+
+One command builds and tests everything and produces the installer:
+
+```powershell
+./scripts/build-installer.ps1
+```
+
+The installer is written to `desktop/src-tauri/target/release/bundle/nsis/`.
+
+Step by step:
+
+```powershell
+node shared/scripts/gen-types.mjs                     # generated types and synced config
+dotnet test sensor-service                            # framing, schema validation, ring buffer, pipe server
+dotnet publish sensor-service/src -c Release -o sensor-service/publish --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+cd desktop
+pnpm install
+node ../scripts/gen-notices.mjs                       # THIRD_PARTY_NOTICES.md from the real dependency graphs
+pnpm check                                            # schemas, WCAG contrast, no color literals, no em dashes, no listeners
+pnpm tauri build                                      # NSIS installer
+```
+
+## Develop
+
+```powershell
+# Service in the foreground (elevated terminal, so the hardware is readable):
+dotnet run --project sensor-service/src -- --console
+# Print the catalog, one frame and the system info as JSON, then exit:
+dotnet run --project sensor-service/src -- --dump
+# Check a running service from any terminal:
+dotnet run --project sensor-service/tools/PipeProbe -- --frames 10
+
+# Install the published service locally (elevated). Files are copied to Program Files first:
+./scripts/install-service.ps1 -BinaryDir sensor-service/publish
+./scripts/uninstall-service.ps1 -RemoveFiles
+
+# Desktop app with hot reload:
+cd desktop; pnpm tauri dev
+```
+
+Service logs are in `%ProgramData%\Siliconsole\logs`. When it runs as SYSTEM, the service restricts that folder's ACL
+so only SYSTEM and Administrators can write to it.
+
+## Repository layout
+
+```
+shared/config/defaults.json     central config
+shared/schemas/                 config, dashboard, theme and protocol schemas
+shared/themes/                  6 built-in themes
+shared/dashboards/              Gaming, Thermals and Storage starter templates (resolved against the live catalog)
+shared/scripts/gen-types.mjs    type generation and config sync
+sensor-service/src              the Windows Service
+sensor-service/tests            xunit tests
+sensor-service/tools/PipeProbe  pipe test client
+desktop/src-tauri               Rust core: pipe client, storage, tray, overlay, alerts, CSV
+desktop/src                     React UI
+desktop/scripts/check-frontend.mjs  repository checks
+scripts/                        service install/uninstall, notices, installer build
+docs/TESTING.md                 manual test steps
+```
+
+## Out of scope
+
+No fan control, overclocking, RGB, FPS capture, cloud sync, accounts, telemetry, network access, auto-update,
+or non-Windows support.

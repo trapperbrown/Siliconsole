@@ -1,0 +1,36 @@
+{
+  "$schema": "../schemas/theme.schema.json",
+  "schemaVersion": 1,
+  "id": "neon-synthwave",
+  "name": "Neon Synthwave",
+  "background": {
+    "kind": "gradient",
+    "color": "#12002b",
+    "gradientTo": "#2e0048",
+    "gradientAngleDeg": 180
+  },
+  "surface": "#1c0838",
+  "surfaceOpacity": 0.8,
+  "surfaceBlurPx": 14,
+  "border": "#4b1f7a",
+  "text": "#fbeaff",
+  "textMuted": "#c9a6e6",
+  "accent": "#ff3ec9",
+  "accentText": "#1a0026",
+  "success": "#3dffb8",
+  "warning": "#ffd23f",
+  "critical": "#ff5c7a",
+  "chartPalette": [
+    "#ff3ec9",
+    "#3df2ff",
+    "#ffd23f",
+    "#a974ff",
+    "#3dffb8",
+    "#ff8a3d",
+    "#ff5c7a",
+    "#7cf7a0"
+  ],
+  "fontFamily": "\"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif",
+  "radiusPx": 14,
+  "glowIntensity": 0.8
+}

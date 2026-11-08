@@ -1,0 +1,20 @@
+{
+  "$schema": "../schemas/dashboard.schema.json",
+  "schemaVersion": 1,
+  "id": "storage",
+  "name": "Storage",
+  "widgets": [
+    { "id": "health", "type": "storageHealth", "x": 0, "y": 0, "w": 8, "h": 10, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["Storage"], "sensorTypes": ["Temperature", "Level", "Load", "Data"], "excludePattern": "Warning Temperature|Critical Temperature|Temperature #", "expand": "all" },
+      "settings": { "label": "Drive health", "decimals": 0 } },
+    { "id": "rates", "type": "lineChart", "x": 8, "y": 0, "w": 16, "h": 10, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["Storage"], "sensorTypes": ["Throughput"], "namePattern": "Read Rate|Write Rate", "expand": "all" },
+      "settings": { "label": "Read and write rates", "decimals": 1, "historySeconds": 300 } },
+    { "id": "drive-temp", "type": "radialGauge", "x": 0, "y": 10, "w": 4, "h": 6, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["Storage"], "sensorTypes": ["Temperature"], "excludePattern": "Warning|Critical|#", "expand": "each" },
+      "settings": { "decimals": 0, "min": 20, "max": 90, "warning": 60, "critical": 70 } },
+    { "id": "drive-used", "type": "linearBar", "x": 4, "y": 10, "w": 6, "h": 3, "sensorIds": [],
+      "sensorQuery": { "hardwareTypes": ["Storage"], "sensorTypes": ["Load"], "namePattern": "Used Space", "expand": "each" },
+      "settings": { "decimals": 0, "min": 0, "max": 100, "warning": 85, "critical": 95 } }
+  ]
+}

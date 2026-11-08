@@ -1,0 +1,925 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://siliconsole.local/schemas/config.schema.json",
+  "title": "Siliconsole central config and user settings",
+  "$ref": "#/$defs/AppConfig",
+  "$defs": {
+    "AppConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "appName",
+        "appId",
+        "appDataFolder",
+        "service",
+        "ipc",
+        "polling",
+        "ringBufferSamples",
+        "hardwareGroups",
+        "reconnect",
+        "units",
+        "sensorUnits",
+        "startup",
+        "window",
+        "dashboards",
+        "widgetDefaults",
+        "sensorsPage",
+        "themes",
+        "alerts",
+        "overlay",
+        "tray",
+        "csvLog",
+        "serviceLog",
+        "systemReport",
+        "pawnio",
+        "files",
+        "ui"
+      ],
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "appName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "appId": {
+          "type": "string"
+        },
+        "appDataFolder": {
+          "type": "string"
+        },
+        "service": {
+          "$ref": "#/$defs/ServiceConfig"
+        },
+        "ipc": {
+          "$ref": "#/$defs/IpcConfig"
+        },
+        "polling": {
+          "$ref": "#/$defs/PollingConfig"
+        },
+        "ringBufferSamples": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "hardwareGroups": {
+          "$ref": "#/$defs/HardwareGroups"
+        },
+        "reconnect": {
+          "$ref": "#/$defs/ReconnectConfig"
+        },
+        "units": {
+          "$ref": "#/$defs/UnitsConfig"
+        },
+        "sensorUnits": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "startup": {
+          "$ref": "#/$defs/StartupConfig"
+        },
+        "devServer": {
+          "$ref": "#/$defs/DevServerConfig"
+        },
+        "window": {
+          "$ref": "#/$defs/WindowConfig"
+        },
+        "dashboards": {
+          "$ref": "#/$defs/DashboardsConfig"
+        },
+        "widgetDefaults": {
+          "$ref": "#/$defs/WidgetDefaults"
+        },
+        "sensorsPage": {
+          "$ref": "#/$defs/SensorsPageConfig"
+        },
+        "themes": {
+          "$ref": "#/$defs/ThemesConfig"
+        },
+        "alerts": {
+          "$ref": "#/$defs/AlertsConfig"
+        },
+        "overlay": {
+          "$ref": "#/$defs/OverlayConfig"
+        },
+        "tray": {
+          "$ref": "#/$defs/TrayConfig"
+        },
+        "csvLog": {
+          "$ref": "#/$defs/CsvLogConfig"
+        },
+        "serviceLog": {
+          "$ref": "#/$defs/ServiceLogConfig"
+        },
+        "systemReport": {
+          "$ref": "#/$defs/SystemReportConfig"
+        },
+        "pawnio": {
+          "$ref": "#/$defs/PawnioConfig"
+        },
+        "files": {
+          "$ref": "#/$defs/FilesConfig"
+        },
+        "ui": {
+          "$ref": "#/$defs/UiConfig"
+        }
+      }
+    },
+    "ServiceConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "displayName",
+        "description",
+        "programDataFolder",
+        "exeName",
+        "installSubfolder",
+        "recoveryRestartDelayMs"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "programDataFolder": {
+          "type": "string"
+        },
+        "exeName": {
+          "type": "string"
+        },
+        "installSubfolder": {
+          "type": "string"
+        },
+        "recoveryRestartDelayMs": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "IpcConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pipeName",
+        "protocolVersion",
+        "maxMessageBytes",
+        "clientQueueCapacity",
+        "maxClients",
+        "handshakeTimeoutMs",
+        "pipeBufferBytes"
+      ],
+      "properties": {
+        "pipeName": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]+$"
+        },
+        "protocolVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxMessageBytes": {
+          "type": "integer",
+          "minimum": 1024
+        },
+        "clientQueueCapacity": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxClients": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "handshakeTimeoutMs": {
+          "type": "integer",
+          "minimum": 100
+        },
+        "pipeBufferBytes": {
+          "type": "integer",
+          "minimum": 4096
+        }
+      }
+    },
+    "PollingConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "defaultIntervalMs",
+        "minIntervalMs",
+        "maxIntervalMs"
+      ],
+      "properties": {
+        "defaultIntervalMs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minIntervalMs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxIntervalMs": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "HardwareGroups": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cpu",
+        "gpu",
+        "memory",
+        "motherboard",
+        "controller",
+        "storage",
+        "network",
+        "battery",
+        "psu"
+      ],
+      "properties": {
+        "cpu": {
+          "type": "boolean"
+        },
+        "gpu": {
+          "type": "boolean"
+        },
+        "memory": {
+          "type": "boolean"
+        },
+        "motherboard": {
+          "type": "boolean"
+        },
+        "controller": {
+          "type": "boolean"
+        },
+        "storage": {
+          "type": "boolean"
+        },
+        "network": {
+          "type": "boolean"
+        },
+        "battery": {
+          "type": "boolean"
+        },
+        "psu": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ReconnectConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "initialDelayMs",
+        "maxDelayMs",
+        "multiplier",
+        "serviceCheckIntervalMs"
+      ],
+      "properties": {
+        "initialDelayMs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxDelayMs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "multiplier": {
+          "type": "number",
+          "minimum": 1
+        },
+        "serviceCheckIntervalMs": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "TemperatureUnit": {
+      "type": "string",
+      "enum": [
+        "C",
+        "F"
+      ]
+    },
+    "UnitsConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "temperature"
+      ],
+      "properties": {
+        "temperature": {
+          "$ref": "#/$defs/TemperatureUnit"
+        }
+      }
+    },
+    "StartupConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "startMinimized",
+        "startWithWindows",
+        "minimizedArg"
+      ],
+      "properties": {
+        "startMinimized": {
+          "type": "boolean"
+        },
+        "startWithWindows": {
+          "type": "boolean"
+        },
+        "minimizedArg": {
+          "type": "string"
+        }
+      }
+    },
+    "DevServerConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "port"
+      ],
+      "properties": {
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
+      }
+    },
+    "WindowConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height",
+        "minWidth",
+        "minHeight"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        },
+        "minWidth": {
+          "type": "integer"
+        },
+        "minHeight": {
+          "type": "integer"
+        }
+      }
+    },
+    "WidgetSize": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "w",
+        "h"
+      ],
+      "properties": {
+        "w": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "h": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "DashboardsConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "defaultDashboardId",
+        "starterIds",
+        "gridColumns",
+        "rowHeightPx",
+        "marginPx",
+        "newWidgetSize",
+        "maxSensorsPerWidget",
+        "saveDebounceMs"
+      ],
+      "properties": {
+        "defaultDashboardId": {
+          "type": "string"
+        },
+        "starterIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "gridColumns": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "rowHeightPx": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "marginPx": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "newWidgetSize": {
+          "$ref": "#/$defs/WidgetSize"
+        },
+        "maxSensorsPerWidget": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "saveDebounceMs": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "WidgetDefaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decimals",
+        "historySeconds",
+        "min",
+        "max",
+        "chartLineWidthPx",
+        "gaugeSweepDegrees",
+        "gaugeStrokePx",
+        "heatmapColumns",
+        "fanMaxRpm"
+      ],
+      "properties": {
+        "decimals": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "historySeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "chartLineWidthPx": {
+          "type": "number"
+        },
+        "gaugeSweepDegrees": {
+          "type": "number"
+        },
+        "gaugeStrokePx": {
+          "type": "number"
+        },
+        "heatmapColumns": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "fanMaxRpm": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "SensorsPageConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "valueDecimals",
+        "typeDecimals"
+      ],
+      "properties": {
+        "valueDecimals": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "typeDecimals": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "ThemesConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "defaultThemeId",
+        "builtinIds",
+        "minContrastRatio",
+        "minLargeTextContrastRatio"
+      ],
+      "properties": {
+        "defaultThemeId": {
+          "type": "string"
+        },
+        "builtinIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "minContrastRatio": {
+          "type": "number"
+        },
+        "minLargeTextContrastRatio": {
+          "type": "number"
+        }
+      }
+    },
+    "AlertsConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cooldownSeconds",
+        "defaultWarning",
+        "defaultCritical"
+      ],
+      "properties": {
+        "cooldownSeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "defaultWarning": {
+          "type": "number"
+        },
+        "defaultCritical": {
+          "type": "number"
+        }
+      }
+    },
+    "OverlayConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hotkey",
+        "scale",
+        "widthPx",
+        "heightPx",
+        "marginPx",
+        "fit",
+        "corner",
+        "opacity",
+        "minSizePx",
+        "minScale",
+        "maxScale",
+        "minOpacity"
+      ],
+      "properties": {
+        "hotkey": {
+          "type": "string"
+        },
+        "scale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "widthPx": {
+          "type": "integer"
+        },
+        "heightPx": {
+          "type": "integer"
+        },
+        "marginPx": {
+          "type": "integer"
+        },
+        "fit": {
+          "type": "boolean"
+        },
+        "corner": {
+          "$ref": "#/$defs/OverlayCorner"
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minSizePx": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minScale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "maxScale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "minOpacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "TrayConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "iconSizePx",
+        "fallbackTooltip"
+      ],
+      "properties": {
+        "iconSizePx": {
+          "type": "integer"
+        },
+        "fallbackTooltip": {
+          "type": "string"
+        }
+      }
+    },
+    "CsvLogConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "intervalMs",
+        "delimiter",
+        "filePrefix",
+        "timestampFormat"
+      ],
+      "properties": {
+        "intervalMs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "delimiter": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1
+        },
+        "filePrefix": {
+          "type": "string"
+        },
+        "timestampFormat": {
+          "type": "string"
+        }
+      }
+    },
+    "ServiceLogConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subfolder",
+        "fileName",
+        "maxFileBytes",
+        "retainedFiles",
+        "minLevel"
+      ],
+      "properties": {
+        "subfolder": {
+          "type": "string"
+        },
+        "fileName": {
+          "type": "string"
+        },
+        "maxFileBytes": {
+          "type": "integer",
+          "minimum": 1024
+        },
+        "retainedFiles": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "minLevel": {
+          "type": "string",
+          "enum": [
+            "Debug",
+            "Information",
+            "Warning",
+            "Error"
+          ]
+        }
+      }
+    },
+    "SystemReportConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fileBaseName"
+      ],
+      "properties": {
+        "fileBaseName": {
+          "type": "string"
+        }
+      }
+    },
+    "PawnioConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "serviceName",
+        "setupUrl",
+        "setupSigner"
+      ],
+      "properties": {
+        "serviceName": {
+          "type": "string"
+        },
+        "setupUrl": {
+          "type": "string"
+        },
+        "setupSigner": {
+          "type": "string"
+        }
+      }
+    },
+    "UserSettings": {
+      "description": "Per-user settings saved to %APPDATA%. Missing fields fall back to defaults.json.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "temperatureUnit": {
+          "$ref": "#/$defs/TemperatureUnit"
+        },
+        "pollIntervalMs": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "startMinimized": {
+          "type": "boolean"
+        },
+        "startWithWindows": {
+          "type": "boolean"
+        },
+        "themeId": {
+          "type": "string"
+        },
+        "activeDashboardId": {
+          "type": "string"
+        },
+        "overlayDashboardId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "traySensorId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "trayTextColor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^#[0-9a-fA-F]{6}$"
+        },
+        "alerts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AlertRule"
+          }
+        },
+        "csvLog": {
+          "$ref": "#/$defs/CsvLogSettings"
+        },
+        "startersCreated": {
+          "type": "boolean"
+        },
+        "overlay": {
+          "$ref": "#/$defs/OverlaySettings"
+        }
+      }
+    },
+    "AlertRule": {
+      "description": "Thresholds are stored in the sensor's native unit (Celsius for temperatures).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sensorId",
+        "enabled",
+        "above",
+        "below"
+      ],
+      "properties": {
+        "sensorId": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "above": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "below": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "CsvLogSettings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "folder",
+        "sensorIds"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "folder": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sensorIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "FilesConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxImportBytes"
+      ],
+      "properties": {
+        "maxImportBytes": {
+          "type": "integer",
+          "minimum": 1024
+        }
+      }
+    },
+    "UiConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "noticeMs"
+      ],
+      "properties": {
+        "noticeMs": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "OverlayCorner": {
+      "type": "string",
+      "enum": [
+        "top-left",
+        "top-right",
+        "bottom-left",
+        "bottom-right"
+      ]
+    },
+    "OverlaySettings": {
+      "description": "Per-user overlay geometry. Missing fields fall back to the overlay section of defaults.json.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "widthPx": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "heightPx": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "scale": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "fit": {
+          "type": "boolean"
+        },
+        "corner": {
+          "$ref": "#/$defs/OverlayCorner"
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    }
+  }
+}

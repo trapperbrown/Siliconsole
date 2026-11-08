@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://siliconsole.local/schemas/theme.schema.json",
+  "title": "Siliconsole theme",
+  "$ref": "#/$defs/Theme",
+  "$defs": {
+    "Color": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+    "Theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "id", "name", "background", "surface", "surfaceOpacity", "surfaceBlurPx", "border", "text", "textMuted", "accent", "accentText", "success", "warning", "critical", "chartPalette", "fontFamily", "radiusPx", "glowIntensity"],
+      "properties": {
+        "$schema": { "type": "string" },
+        "schemaVersion": { "type": "integer", "minimum": 1, "maximum": 1 },
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "background": { "$ref": "#/$defs/Background" },
+        "surface": { "$ref": "#/$defs/Color" },
+        "surfaceOpacity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "surfaceBlurPx": { "type": "number", "minimum": 0, "maximum": 64 },
+        "border": { "$ref": "#/$defs/Color" },
+        "text": { "$ref": "#/$defs/Color" },
+        "textMuted": { "$ref": "#/$defs/Color" },
+        "accent": { "$ref": "#/$defs/Color" },
+        "accentText": { "$ref": "#/$defs/Color" },
+        "success": { "$ref": "#/$defs/Color" },
+        "warning": { "$ref": "#/$defs/Color" },
+        "critical": { "$ref": "#/$defs/Color" },
+        "chartPalette": { "type": "array", "minItems": 8, "maxItems": 8, "items": { "$ref": "#/$defs/Color" } },
+        "fontFamily": { "type": "string", "maxLength": 256 },
+        "radiusPx": { "type": "number", "minimum": 0, "maximum": 32 },
+        "glowIntensity": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "BackgroundKind": { "type": "string", "enum": ["solid", "gradient", "image"] },
+    "Background": {
+      "description": "color is always required: it is the solid fill, the image fallback, and the contrast reference.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "color"],
+      "properties": {
+        "kind": { "$ref": "#/$defs/BackgroundKind" },
+        "color": { "$ref": "#/$defs/Color" },
+        "gradientTo": { "$ref": "#/$defs/Color" },
+        "gradientAngleDeg": { "type": "number" },
+        "imageUrl": { "type": "string", "maxLength": 2097152 }
+      }
+    }
+  }
+}

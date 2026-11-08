@@ -1,0 +1,820 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://siliconsole.local/schemas/protocol.schema.json",
+  "title": "Siliconsole pipe protocol",
+  "description": "Messages are UTF-8 JSON, each prefixed by a 4 byte little-endian unsigned length.",
+  "$defs": {
+    "ClientMessage": {
+      "description": "Any message a client may send to the service.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ClientHello"
+        },
+        {
+          "$ref": "#/$defs/HistoryRequest"
+        },
+        {
+          "$ref": "#/$defs/SetInterval"
+        }
+      ]
+    },
+    "ServiceMessage": {
+      "description": "Any message the service may send to a client.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ServiceHello"
+        },
+        {
+          "$ref": "#/$defs/SystemInfoMessage"
+        },
+        {
+          "$ref": "#/$defs/SensorCatalogMessage"
+        },
+        {
+          "$ref": "#/$defs/SensorFrameMessage"
+        },
+        {
+          "$ref": "#/$defs/HistoryResponse"
+        }
+      ]
+    },
+    "ClientHello": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "protocolVersion",
+        "client"
+      ],
+      "properties": {
+        "type": {
+          "const": "hello"
+        },
+        "protocolVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "client": {
+          "type": "string",
+          "maxLength": 128
+        }
+      }
+    },
+    "HistoryRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "requestId",
+        "ids"
+      ],
+      "properties": {
+        "type": {
+          "const": "history_request"
+        },
+        "requestId": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ids": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "type": "string",
+            "maxLength": 512
+          }
+        },
+        "maxSamples": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "SetInterval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "intervalMs"
+      ],
+      "properties": {
+        "type": {
+          "const": "set_interval"
+        },
+        "intervalMs": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "ServiceHello": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "protocolVersion",
+        "appName",
+        "serviceVersion",
+        "intervalMs",
+        "minIntervalMs",
+        "maxIntervalMs",
+        "ringBufferSamples"
+      ],
+      "properties": {
+        "type": {
+          "const": "hello"
+        },
+        "protocolVersion": {
+          "type": "integer"
+        },
+        "appName": {
+          "type": "string"
+        },
+        "serviceVersion": {
+          "type": "string"
+        },
+        "intervalMs": {
+          "type": "integer"
+        },
+        "minIntervalMs": {
+          "type": "integer"
+        },
+        "maxIntervalMs": {
+          "type": "integer"
+        },
+        "ringBufferSamples": {
+          "type": "integer"
+        }
+      }
+    },
+    "SystemInfoMessage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "info"
+      ],
+      "properties": {
+        "type": {
+          "const": "system_info"
+        },
+        "info": {
+          "$ref": "#/$defs/SystemInfo"
+        }
+      }
+    },
+    "SystemInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "collectedAt",
+        "cpus",
+        "board",
+        "bios",
+        "memory",
+        "gpus",
+        "storage",
+        "os"
+      ],
+      "properties": {
+        "collectedAt": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "cpus": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CpuInfo"
+          }
+        },
+        "board": {
+          "$ref": "#/$defs/BoardInfo"
+        },
+        "bios": {
+          "$ref": "#/$defs/BiosInfo"
+        },
+        "memory": {
+          "$ref": "#/$defs/MemoryInfo"
+        },
+        "gpus": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/GpuInfo"
+          }
+        },
+        "storage": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/StorageInfo"
+          }
+        },
+        "os": {
+          "$ref": "#/$defs/OsInfo"
+        }
+      }
+    },
+    "CpuInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "vendor",
+        "codename",
+        "family",
+        "model",
+        "stepping",
+        "socket",
+        "cores",
+        "threads",
+        "baseClockMhz",
+        "l1CacheKb",
+        "l2CacheKb",
+        "l3CacheKb",
+        "tjMaxC",
+        "microcode",
+        "instructionSets"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "vendor": {
+          "type": "string"
+        },
+        "codename": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "family": {
+          "type": "integer"
+        },
+        "model": {
+          "type": "integer"
+        },
+        "stepping": {
+          "type": "integer"
+        },
+        "socket": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cores": {
+          "type": "integer"
+        },
+        "threads": {
+          "type": "integer"
+        },
+        "baseClockMhz": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "l1CacheKb": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "l2CacheKb": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "l3CacheKb": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "tjMaxC": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "microcode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "instructionSets": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "BoardInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manufacturer",
+        "product",
+        "version"
+      ],
+      "properties": {
+        "manufacturer": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "product": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "BiosInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vendor",
+        "version",
+        "releaseDate"
+      ],
+      "properties": {
+        "vendor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "releaseDate": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "MemoryInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "totalBytes",
+        "slotsTotal",
+        "modules"
+      ],
+      "properties": {
+        "totalBytes": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "slotsTotal": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "modules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MemoryModule"
+          }
+        }
+      }
+    },
+    "MemoryModule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "slot",
+        "bank",
+        "capacityBytes",
+        "speedMts",
+        "configuredSpeedMts",
+        "manufacturer",
+        "partNumber",
+        "formFactor",
+        "memoryType"
+      ],
+      "properties": {
+        "slot": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "bank": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "capacityBytes": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "speedMts": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "configuredSpeedMts": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "manufacturer": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "partNumber": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "formFactor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "memoryType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "GpuInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "vendor",
+        "dedicatedVideoMemoryBytes",
+        "sharedSystemMemoryBytes",
+        "driverVersion",
+        "driverDate",
+        "hardwareId"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "vendor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "dedicatedVideoMemoryBytes": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "sharedSystemMemoryBytes": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "driverVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "driverDate": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hardwareId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "StorageInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model",
+        "firmware",
+        "interface",
+        "mediaType",
+        "sizeBytes",
+        "health",
+        "hardwareId"
+      ],
+      "properties": {
+        "model": {
+          "type": "string"
+        },
+        "firmware": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "interface": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "mediaType": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "sizeBytes": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "health": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hardwareId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "OsInfo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "displayVersion",
+        "build",
+        "architecture",
+        "installDate",
+        "computerName"
+      ],
+      "properties": {
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "displayVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "build": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "architecture": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "installDate": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "computerName": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "SensorCatalogMessage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "hardware",
+        "sensors"
+      ],
+      "properties": {
+        "type": {
+          "const": "sensor_catalog"
+        },
+        "hardware": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/HardwareEntry"
+          }
+        },
+        "sensors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SensorEntry"
+          }
+        }
+      }
+    },
+    "HardwareEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "hardwareType",
+        "parentId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "hardwareType": {
+          "type": "string"
+        },
+        "parentId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "SensorEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "hardwareId",
+        "sensorType",
+        "index"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "hardwareId": {
+          "type": "string"
+        },
+        "sensorType": {
+          "type": "string"
+        },
+        "index": {
+          "type": "integer"
+        }
+      }
+    },
+    "SensorFrameMessage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "timestamp",
+        "values"
+      ],
+      "properties": {
+        "type": {
+          "const": "sensor_frame"
+        },
+        "timestamp": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SensorValue"
+          }
+        }
+      }
+    },
+    "SensorValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "value",
+        "min",
+        "max"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "value": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "min": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "max": {
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      }
+    },
+    "HistoryResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "requestId",
+        "timestamps",
+        "series"
+      ],
+      "properties": {
+        "type": {
+          "const": "history_response"
+        },
+        "requestId": {
+          "type": "integer"
+        },
+        "timestamps": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "series": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/HistorySeries"
+          }
+        }
+      }
+    },
+    "HistorySeries": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "values"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

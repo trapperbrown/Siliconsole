@@ -1,0 +1,36 @@
+{
+  "$schema": "../schemas/theme.schema.json",
+  "schemaVersion": 1,
+  "id": "forge",
+  "name": "Forge",
+  "background": {
+    "kind": "gradient",
+    "color": "#141210",
+    "gradientTo": "#231d17",
+    "gradientAngleDeg": 170
+  },
+  "surface": "#1f1b17",
+  "surfaceOpacity": 0.9,
+  "surfaceBlurPx": 10,
+  "border": "#3d342a",
+  "text": "#f4ece1",
+  "textMuted": "#b8a994",
+  "accent": "#ffb000",
+  "accentText": "#1a1000",
+  "success": "#8fce5f",
+  "warning": "#ff8c1a",
+  "critical": "#ff5c47",
+  "chartPalette": [
+    "#ffb000",
+    "#ff8c1a",
+    "#ff5c47",
+    "#8fce5f",
+    "#e8d4a8",
+    "#d97941",
+    "#6fb7c9",
+    "#c9a227"
+  ],
+  "fontFamily": "\"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif",
+  "radiusPx": 8,
+  "glowIntensity": 0.4
+}

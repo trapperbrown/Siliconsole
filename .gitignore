@@ -1,0 +1,10 @@
+node_modules/
+dist/
+bin/
+obj/
+target/
+desktop/src-tauri/gen/
+*.user
+.vs/
+artifacts/
+publish/

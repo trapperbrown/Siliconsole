@@ -1,0 +1,17 @@
+{
+  "$schema": "../schemas/dashboard.schema.json",
+  "schemaVersion": 1,
+  "id": "thermals",
+  "name": "Thermals",
+  "widgets": [
+    { "id": "all-temps", "type": "lineChart", "x": 0, "y": 0, "w": 16, "h": 9, "sensorIds": [],
+      "sensorQuery": { "sensorTypes": ["Temperature"], "excludePattern": "Limit|Resolution|Warning Temperature|Critical Temperature|Distance", "limit": 8, "expand": "all" },
+      "settings": { "label": "Temperatures", "decimals": 0, "historySeconds": 600 } },
+    { "id": "fans", "type": "fanList", "x": 16, "y": 0, "w": 8, "h": 9, "sensorIds": [],
+      "sensorQuery": { "sensorTypes": ["Fan"], "expand": "all" },
+      "settings": { "label": "Fans" } },
+    { "id": "temp", "type": "sparkline", "x": 0, "y": 9, "w": 4, "h": 4, "sensorIds": [],
+      "sensorQuery": { "sensorTypes": ["Temperature"], "excludePattern": "Limit|Resolution|Warning Temperature|Critical Temperature|Distance", "limit": 32, "expand": "each" },
+      "settings": { "decimals": 1, "warning": 80, "critical": 90, "historySeconds": 120 } }
+  ]
+}

@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Siliconsole.SensorService.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Siliconsole.SensorService.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/PipeProbe/PipeProbe.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://siliconsole.local/schemas/dashboard.schema.json",
+  "title": "Siliconsole dashboard layout",
+  "$ref": "#/$defs/Dashboard",
+  "$defs": {
+    "Dashboard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "id", "name", "widgets"],
+      "properties": {
+        "$schema": { "type": "string" },
+        "schemaVersion": { "type": "integer", "minimum": 1, "maximum": 1 },
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "widgets": { "type": "array", "maxItems": 256, "items": { "$ref": "#/$defs/Widget" } }
+      }
+    },
+    "WidgetType": {
+      "type": "string",
+      "enum": ["radialGauge", "linearBar", "bigNumber", "sparkline", "lineChart", "coreHeatmap", "storageHealth", "fanList"]
+    },
+    "Widget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "x", "y", "w", "h", "sensorIds", "settings"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]{1,64}$" },
+        "type": { "$ref": "#/$defs/WidgetType" },
+        "x": { "type": "integer", "minimum": 0 },
+        "y": { "type": "integer", "minimum": 0 },
+        "w": { "type": "integer", "minimum": 1 },
+        "h": { "type": "integer", "minimum": 1 },
+        "sensorIds": { "type": "array", "maxItems": 256, "items": { "type": "string", "maxLength": 512 } },
+        "sensorQuery": { "$ref": "#/$defs/SensorQuery" },
+        "settings": { "$ref": "#/$defs/WidgetSettings" }
+      }
+    },
+    "WidgetSettings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "label": { "type": ["string", "null"], "maxLength": 64 },
+        "unit": { "type": ["string", "null"], "maxLength": 16 },
+        "decimals": { "type": ["integer", "null"], "minimum": 0, "maximum": 6 },
+        "min": { "type": ["number", "null"] },
+        "max": { "type": ["number", "null"] },
+        "warning": { "type": ["number", "null"] },
+        "critical": { "type": ["number", "null"] },
+        "historySeconds": { "type": ["integer", "null"], "minimum": 1 }
+      }
+    },
+    "SensorQuery": {
+      "description": "Only used by starter templates. Resolved against the live catalog into sensorIds, then dropped.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["expand"],
+      "properties": {
+        "hardwareTypes": { "type": "array", "items": { "type": "string" } },
+        "sensorTypes": { "type": "array", "items": { "type": "string" } },
+        "namePattern": { "type": "string" },
+        "excludePattern": { "type": "string" },
+        "limit": { "type": "integer", "minimum": 1 },
+        "expand": { "type": "string", "enum": ["all", "each"] }
+      }
+    }
+  }
+}

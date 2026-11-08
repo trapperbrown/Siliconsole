@@ -1,0 +1,22 @@
+{
+  "$schema": "../schemas/theme.schema.json",
+  "schemaVersion": 1,
+  "id": "midnight",
+  "name": "Midnight",
+  "background": { "kind": "gradient", "color": "#0a0e16", "gradientTo": "#121b2e", "gradientAngleDeg": 160 },
+  "surface": "#141b2a",
+  "surfaceOpacity": 0.86,
+  "surfaceBlurPx": 12,
+  "border": "#26314a",
+  "text": "#e7ecf6",
+  "textMuted": "#9aa7c0",
+  "accent": "#5aa6ff",
+  "accentText": "#07121f",
+  "success": "#3ddc97",
+  "warning": "#ffb547",
+  "critical": "#ff6170",
+  "chartPalette": ["#5aa6ff", "#3ddc97", "#ffb547", "#ff6170", "#b48cff", "#4fd8e8", "#ff8fcf", "#c8d65a"],
+  "fontFamily": "\"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif",
+  "radiusPx": 10,
+  "glowIntensity": 0.35
+}

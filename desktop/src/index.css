@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+/* All colors resolve to theme tokens set by lib/theme.ts. No color literals live here. */
+@theme inline {
+  --color-bg: var(--sc-bg);
+  --color-surface: color-mix(in srgb, var(--sc-surface) calc(var(--sc-surface-opacity) * 100%), transparent);
+  --color-surface-solid: var(--sc-surface);
+  --color-border: var(--sc-border);
+  --color-text: var(--sc-text);
+  --color-muted: var(--sc-text-muted);
+  --color-accent: var(--sc-accent);
+  --color-accent-text: var(--sc-accent-text);
+  --color-success: var(--sc-success);
+  --color-warning: var(--sc-warning);
+  --color-critical: var(--sc-critical);
+  --radius-theme: var(--sc-radius);
+  --font-theme: var(--sc-font);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--sc-background);
+  background-attachment: fixed;
+  color: var(--sc-text);
+  font-family: var(--sc-font);
+  overflow: hidden;
+  user-select: none;
+}
+
+body.overlay {
+  background: transparent;
+}
+
+.panel {
+  background: var(--color-surface);
+  backdrop-filter: blur(var(--sc-surface-blur));
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius);
+  box-shadow: 0 0 calc(var(--sc-glow) * 24px) color-mix(in srgb, var(--sc-accent) calc(var(--sc-glow) * 35%), transparent);
+}
+
+.btn {
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius);
+  padding: 0.3rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--sc-text);
+  background: var(--color-surface);
+  cursor: pointer;
+}
+.btn:hover {
+  border-color: var(--sc-accent);
+}
+.btn:focus-visible,
+.field:focus-visible {
+  outline: 2px solid var(--sc-accent);
+  outline-offset: 1px;
+}
+.btn-accent {
+  background: var(--sc-accent);
+  color: var(--sc-accent-text);
+  border-color: var(--sc-accent);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.field {
+  background: var(--sc-surface);
+  color: var(--sc-text);
+  border: 1px solid var(--sc-border);
+  border-radius: var(--sc-radius);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+  user-select: text;
+}
+
+.selectable {
+  user-select: text;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--sc-border);
+  border-radius: var(--sc-radius);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* react-grid-layout: replace its default placeholder and handle colors with tokens. */
+.react-grid-item.react-grid-placeholder {
+  background: var(--sc-accent) !important;
+  opacity: 0.25 !important;
+  border-radius: var(--sc-radius);
+}
+.react-grid-item > .react-resizable-handle::after {
+  border-color: var(--sc-text-muted) !important;
+}
+
+/* uPlot: legend off, keep the canvas transparent. */
+.uplot {
+  font-family: var(--sc-font);
+}
+
+input[type="range"],
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--sc-accent);
+}

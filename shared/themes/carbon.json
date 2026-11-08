@@ -1,0 +1,36 @@
+{
+  "$schema": "../schemas/theme.schema.json",
+  "schemaVersion": 1,
+  "id": "carbon",
+  "name": "Carbon",
+  "background": {
+    "kind": "gradient",
+    "color": "#16171a",
+    "gradientTo": "#25272c",
+    "gradientAngleDeg": 135
+  },
+  "surface": "#222428",
+  "surfaceOpacity": 0.92,
+  "surfaceBlurPx": 8,
+  "border": "#3a3d44",
+  "text": "#ecedef",
+  "textMuted": "#a7abb4",
+  "accent": "#e5383b",
+  "accentText": "#120000",
+  "success": "#3fbf7f",
+  "warning": "#f0a63a",
+  "critical": "#ff6b6f",
+  "chartPalette": [
+    "#e5383b",
+    "#c9ccd3",
+    "#f0a63a",
+    "#3fbf7f",
+    "#5aa9e6",
+    "#c77dff",
+    "#ff8fa3",
+    "#8d929c"
+  ],
+  "fontFamily": "\"Segoe UI Variable\", \"Segoe UI\", system-ui, sans-serif",
+  "radiusPx": 6,
+  "glowIntensity": 0.2
+}
