@@ -85,6 +85,13 @@ One command builds and tests everything and produces the installer:
 
 The installer is written to `desktop/src-tauri/target/release/bundle/nsis/`.
 
+To ship a new version (bumps the version, builds, tests, commits, tags, pushes and publishes a GitHub release):
+
+```powershell
+./scripts/release.ps1 -Version 1.0.1 -Notes "What changed."
+./scripts/release.ps1 -Version 1.0.1 -DryRun   # build only, nothing published
+```
+
 Step by step:
 
 ```powershell
