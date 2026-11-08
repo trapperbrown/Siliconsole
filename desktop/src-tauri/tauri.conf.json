@@ -57,7 +57,8 @@
     "resources": {
       "../../sensor-service/publish/sensor-service.exe": "sensor-service/sensor-service.exe",
       "../../sensor-service/publish/defaults.json": "sensor-service/defaults.json",
-      "../../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md"
+      "../../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md",
+      "../../LICENSE": "LICENSE.txt"
     },
     "publisher": "Siliconsole",
     "copyright": "Siliconsole contributors",
@@ -68,6 +69,8 @@
         "installMode": "perMachine",
         "installerHooks": "windows/hooks.nsh"
       }
-    }
+    },
+    "license": "MIT",
+    "licenseFile": "../../LICENSE"
   }
 }

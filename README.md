@@ -4,6 +4,38 @@ Windows hardware info and sensor monitor for PC gamers and enthusiasts: a CPU-Z 
 an HWiNFO style Sensors tree, drag-and-drop dashboards, swappable themes, a click-through overlay,
 threshold alerts and CSV logging.
 
+## Install
+
+Download `Siliconsole_<version>_x64-setup.exe` from the [Releases](../../releases) page and run it.
+
+- **Windows SmartScreen will warn** that the app is unrecognized, because the installer isn't code-signed.
+  Click "More info", then "Run anyway".
+- **What gets installed:**
+  - the desktop app;
+  - a background Windows service (`Siliconsole Sensor Service`) that runs as LocalSystem, because reading
+    hardware sensors needs administrator rights;
+  - optionally, the [PawnIO](https://github.com/namazso/PawnIO.Setup) driver. The installer asks first, then downloads
+    PawnIO's official signed setup.
+- **Uninstall** from Settings, Apps. This removes the app and the service. PawnIO stays installed (other tools may use
+  it); remove it separately from Apps if you want.
+
+## Disclaimer
+
+Siliconsole is a free hobby project, provided **as is, with no warranty of any kind**, under the [MIT License](LICENSE).
+You use it at your own risk; the authors are not liable for any damage, data loss, crash or other problem that
+arises from installing or using it.
+
+Things worth knowing before you install:
+
+- Siliconsole only **reads** sensors. It has no fan control, overclocking or voltage writes, so it doesn't change how
+  your hardware runs.
+- It installs a service with full system rights and, if you agree, a kernel driver (PawnIO). Only install software
+  like this from people you trust.
+- Some antivirus tools may flag an unsigned app that installs a driver.
+- Some kernel-level anti-cheat systems are strict about hardware-access drivers. PawnIO is designed to be
+  anti-cheat friendly (unlike the old WinRing0 driver), but if a game complains, quit Siliconsole or stop its service
+  while you play.
+
 ## Architecture
 
 Three parts with strict privilege separation:
@@ -109,3 +141,7 @@ docs/TESTING.md                 manual test steps
 
 No fan control, overclocking, RGB, FPS capture, cloud sync, accounts, telemetry, network access, auto-update,
 or non-Windows support.
+
+## License
+
+[MIT](LICENSE). Third-party components and their licenses are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

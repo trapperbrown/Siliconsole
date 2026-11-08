@@ -216,11 +216,14 @@ Object.assign(main, { title: cfg.appName, width: cfg.window.width, height: cfg.w
 const overlay = tauri.app.windows.find((w) => w.label === "overlay");
 Object.assign(overlay, { title: `${cfg.appName} Overlay`, width: cfg.overlay.widthPx, height: cfg.overlay.heightPx });
 tauri.bundle.publisher = cfg.appName;
+tauri.bundle.license = "MIT";
+tauri.bundle.licenseFile = "../../LICENSE";
 tauri.bundle.copyright = `${cfg.appName} contributors`;
 tauri.bundle.resources = {
   [`../../sensor-service/publish/${cfg.service.exeName}`]: `${cfg.service.installSubfolder}/${cfg.service.exeName}`,
   "../../sensor-service/publish/defaults.json": `${cfg.service.installSubfolder}/defaults.json`,
   "../../THIRD_PARTY_NOTICES.md": "THIRD_PARTY_NOTICES.md",
+  "../../LICENSE": "LICENSE.txt",
 };
 writeFileSync(tauriPath, JSON.stringify(tauri, null, 2) + "\n");
 console.log(`synced ${tauriPath}`);
