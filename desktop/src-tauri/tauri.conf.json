@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Siliconsole",
   "mainBinaryName": "Siliconsole",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "identifier": "com.siliconsole.desktop",
   "build": {
     "beforeDevCommand": "pnpm dev",
