@@ -43,8 +43,8 @@ export function WidgetSettingsPanel({ widget, onSave, onClose }: { widget: Widge
   const has = (f: (typeof kind.fields)[number]) => kind.fields.includes(f);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg/70 p-6" role="dialog" aria-modal aria-label={`${kind.label} settings`} onKeyDown={(e) => e.key === "Escape" && onClose()}>
-      <div className="panel flex max-h-full w-[46rem] flex-col gap-3 bg-surface-solid p-4">
+    <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-bg/70 p-6" role="dialog" aria-modal aria-label={`${kind.label} settings`} onKeyDown={(e) => e.key === "Escape" && onClose()}>
+      <div className="modal-card panel flex max-h-full w-[46rem] flex-col gap-3 bg-surface-solid p-4">
         <h2 className="font-semibold">{kind.label} settings</h2>
         <div className="grid grid-cols-2 gap-3 text-sm">
           <label className="flex flex-col gap-1">

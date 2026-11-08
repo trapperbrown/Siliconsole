@@ -13,7 +13,7 @@ export function StatusIndicator() {
   const label = LABELS[state];
   return (
     <div className="flex items-center gap-2 text-sm" role="status" aria-live="polite">
-      <span className={`inline-block h-2.5 w-2.5 rounded-full ${label.dot}`} aria-hidden />
+      <span className={`inline-block h-2.5 w-2.5 rounded-full ${label.dot} ${state === "connected" ? "pulse text-success" : ""}`} aria-hidden />
       <span>{label.text}</span>
       {state === "connected" && t.hello && <span className="text-muted">{t.hello.intervalMs} ms</span>}
       {state === "reconnecting" && detail && <span className="text-muted">{detail}</span>}

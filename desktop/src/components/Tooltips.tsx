@@ -42,7 +42,7 @@ export function Tooltips() {
   return (
     <div
       role="tooltip"
-      className="panel pointer-events-none fixed z-[80] max-w-xs bg-surface-solid px-2 py-1 text-xs"
+      className="fade-in panel pointer-events-none fixed z-[80] max-w-xs bg-surface-solid px-2 py-1 text-xs"
       style={{ left: tip.x, top: tip.y, transform: `translate(-50%, ${tip.above ? "-100%" : "0"})` }}
     >
       {tip.text}

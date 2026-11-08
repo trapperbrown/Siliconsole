@@ -64,7 +64,7 @@ export function Tour({ onPage, onDone }: { onPage: (page: string) => void; onDon
       ) : (
         <div className="fixed inset-0 bg-bg/70" />
       )}
-      <div className="panel fixed flex w-80 flex-col gap-2 bg-surface-solid p-4" style={{ left: cardLeft, top: cardTop, bottom: cardBottom }}>
+      <div key={i} className="modal-card panel fixed flex w-80 flex-col gap-2 bg-surface-solid p-4" style={{ left: cardLeft, top: cardTop, bottom: cardBottom }}>
         <p className="text-xs text-muted">
           {i + 1} of {TOUR.length}
         </p>

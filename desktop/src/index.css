@@ -118,3 +118,101 @@ input[type="checkbox"],
 input[type="radio"] {
   accent-color: var(--sc-accent);
 }
+
+/* ---------- Motion. Everything below switches off under "reduce motion" (end of file). ---------- */
+:root {
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 140ms;
+  --dur: 240ms;
+}
+
+@keyframes sc-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sc-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes sc-pop {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes sc-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 55%, transparent); }
+  100% { box-shadow: 0 0 0 7px color-mix(in srgb, currentColor 0%, transparent); }
+}
+
+/* Page content slides in on each page change (the element is keyed by page). */
+.page-enter { animation: sc-fade-up var(--dur) var(--ease-out); }
+
+/* Children appear one after another; set --i on each child. */
+.stagger > * { animation: sc-fade-up var(--dur) var(--ease-out) both; animation-delay: calc(var(--i, 0) * 35ms); }
+
+/* Dialogs: backdrop fades, card pops. */
+.modal-backdrop { animation: sc-fade var(--dur-fast) ease-out; backdrop-filter: blur(3px); }
+.modal-card { animation: sc-pop var(--dur) var(--ease-out); }
+
+.fade-in { animation: sc-fade var(--dur-fast) ease-out; }
+
+.btn,
+.field,
+.panel,
+.nav-item {
+  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, color var(--dur-fast) ease, box-shadow var(--dur) ease, transform var(--dur-fast) var(--ease-out);
+}
+.btn:not(:disabled):active { transform: scale(0.97); }
+.btn-accent:not(:disabled):hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--sc-accent) 25%, transparent); }
+.field:hover { border-color: color-mix(in srgb, var(--sc-accent) 50%, var(--sc-border)); }
+
+/* Cards that react to the pointer (dashboard widgets, sensor cards, picker cards). */
+.lift:hover { border-color: color-mix(in srgb, var(--sc-accent) 45%, var(--sc-border)); }
+
+/* Sidebar items: accent bar slides in on the active one. */
+.nav-item { position: relative; }
+.nav-item::before {
+  content: "";
+  position: absolute;
+  left: -0.5rem;
+  top: 25%;
+  bottom: 25%;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--sc-accent);
+  transform: scaleY(0);
+  transition: transform var(--dur) var(--ease-out);
+}
+.nav-item[aria-current="page"]::before { transform: scaleY(1); }
+.nav-item:not([aria-current="page"]):hover { transform: translateX(2px); }
+
+/* Connected dot breathes. */
+.pulse { animation: sc-pulse 1.8s ease-out infinite; }
+
+/* Chevron for expandable rows and <details>. */
+.chevron { transition: transform var(--dur) var(--ease-out); }
+[aria-expanded="true"] > .chevron,
+details[open] > summary .chevron { transform: rotate(90deg); }
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
+details[open] > :not(summary) { animation: sc-fade-up var(--dur) var(--ease-out); }
+
+/* Gauges and bars glide to new values instead of jumping. */
+.gauge-arc { transition: d 600ms var(--ease-out), stroke 300ms ease; }
+.bar-fill { transition: width 600ms var(--ease-out), background-color 300ms ease; }
+
+/* Dashboard widgets fade in as a dashboard opens (opacity only: the grid owns transform). */
+@keyframes sc-widget-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.react-grid-item { animation: sc-widget-in 320ms ease-out both; animation-delay: calc(var(--i, 0) * 30ms); }
+.react-grid-item.react-grid-placeholder { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

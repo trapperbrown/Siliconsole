@@ -58,8 +58,8 @@ export function DashboardGrid({
           compactor={verticalCompactor}
           onLayoutChange={handleLayout}
         >
-          {dashboard.widgets.map((w) => (
-            <div key={w.id} className={`panel ${editing ? "cursor-move outline-dashed outline-1 outline-accent" : ""}`}>
+          {dashboard.widgets.map((w, i) => (
+            <div key={w.id} style={{ "--i": Math.min(i, 16) } as React.CSSProperties} className={`panel lift ${editing ? "cursor-move outline-dashed outline-1 outline-accent" : ""}`}>
               <WidgetBody widget={w} compact={compact} />
               {editing && (
                 <div className="no-drag absolute right-1 top-1 flex gap-1">

@@ -1,6 +1,7 @@
 import { getVersion } from "@tauri-apps/api/app";
 import { useEffect, useState, type ReactNode } from "react";
 import { config } from "../lib/config";
+import { ChevronIcon } from "../components/Icons";
 import { UpdateCheck } from "../components/UpdateCheck";
 
 const hotkey = config.overlay.hotkey.replace("CommandOrControl", "Ctrl");
@@ -102,7 +103,10 @@ export function GuidePage({ onTour }: { onTour: () => void }) {
         <h2 className="mt-2 font-semibold text-accent">Questions</h2>
         {TOPICS.map((t) => (
           <details key={t.q} className="rounded-theme border border-border px-3 py-2 text-sm">
-            <summary className="cursor-pointer font-medium">{t.q}</summary>
+            <summary className="flex cursor-pointer items-center gap-2 font-medium">
+              <ChevronIcon className="chevron h-4 w-4 shrink-0 text-muted" />
+              {t.q}
+            </summary>
             <p className="selectable mt-2 leading-relaxed text-muted">{t.a}</p>
           </details>
         ))}

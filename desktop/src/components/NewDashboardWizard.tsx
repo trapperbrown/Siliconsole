@@ -57,8 +57,8 @@ export function NewDashboardWizard({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg/70 p-6" role="dialog" aria-modal aria-label="New dashboard" onKeyDown={(e) => e.key === "Escape" && onClose()}>
-      <div className="panel flex max-h-full w-[64rem] flex-col gap-3 bg-surface-solid p-4">
+    <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-bg/70 p-6" role="dialog" aria-modal aria-label="New dashboard" onKeyDown={(e) => e.key === "Escape" && onClose()}>
+      <div className="modal-card panel flex max-h-full w-[64rem] flex-col gap-3 bg-surface-solid p-4">
         <div className="flex items-center gap-3">
           <div>
             <p className="text-xs uppercase tracking-wide text-muted">Step {picked ? 2 : 1} of 2</p>
@@ -74,7 +74,7 @@ export function NewDashboardWizard({ onClose }: { onClose: () => void }) {
             {[BLANK, ...presets].map((p) => {
               const r = resolved.get(p)!;
               return (
-                <button key={p.id} className="btn flex flex-col gap-2 p-2 text-left" onClick={() => pick(p)}>
+                <button key={p.id} className="btn lift flex flex-col gap-2 p-2 text-left" onClick={() => pick(p)}>
                   <LayoutPreview dashboard={r} />
                   <span className="font-medium">{p === BLANK ? "Blank" : p.name}</span>
                   <span className="text-xs text-muted">{p.description}</span>

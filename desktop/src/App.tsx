@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ChipIcon, DashboardIcon, GearIcon, HelpIcon, PaletteIcon, PulseIcon } from "./components/Icons";
 import { StatusIndicator } from "./components/StatusIndicator";
 import { Tooltips } from "./components/Tooltips";
 import { Tour } from "./components/Tour";
@@ -13,12 +14,12 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { ThemesPage } from "./pages/ThemesPage";
 
 const PAGES = [
-  { id: "dashboards", label: "Dashboards", tip: "Your live sensor dashboards" },
-  { id: "system", label: "System Info", tip: "CPU, motherboard, memory, GPU, drives and Windows details" },
-  { id: "sensors", label: "Sensors", tip: "Every sensor reading with min, max and average" },
-  { id: "themes", label: "Themes", tip: "Change the app's colors and background" },
-  { id: "settings", label: "Settings", tip: "Units, alerts, logging, tray and overlay" },
-  { id: "guide", label: "Guide", tip: "Help, the tour, and about this app" },
+  { id: "dashboards", label: "Dashboards", tip: "Your live sensor dashboards", Icon: DashboardIcon },
+  { id: "system", label: "System Info", tip: "CPU, motherboard, memory, GPU, drives and Windows details", Icon: ChipIcon },
+  { id: "sensors", label: "Sensors", tip: "Every sensor reading with min, max and average", Icon: PulseIcon },
+  { id: "themes", label: "Themes", tip: "Change the app's colors and background", Icon: PaletteIcon },
+  { id: "settings", label: "Settings", tip: "Units, alerts, logging, tray and overlay", Icon: GearIcon },
+  { id: "guide", label: "Guide", tip: "Help, the tour, and about this app", Icon: HelpIcon },
 ] as const;
 type PageId = (typeof PAGES)[number]["id"];
 
@@ -32,6 +33,7 @@ export function App() {
     setPage("dashboards");
     settings.update({ tourSeen: true });
   };
+  const current = PAGES.find((p) => p.id === page)!;
   const pin = (id: string) => {
     const name = dashboards.pin(id);
     setPinNote(name ? `Pinned to ${name}` : "Create a dashboard first");
@@ -40,23 +42,31 @@ export function App() {
   return (
     <div className="flex h-full gap-3 p-3">
       <nav className="panel flex w-48 shrink-0 flex-col gap-1 p-3" aria-label="Main" data-tour="nav">
-        <div className="mb-4 px-2 text-lg font-bold tracking-wide text-accent">{config.appName}</div>
+        <div className="mb-5 flex items-center gap-2 px-2 text-lg font-bold tracking-wide">
+          <span className="flex h-8 w-8 items-center justify-center rounded-theme bg-accent text-accent-text">
+            <ChipIcon className="h-5 w-5" />
+          </span>
+          {config.appName}
+        </div>
         {PAGES.map((p) => (
           <button
             key={p.id}
             data-tour={`nav-${p.id}`}
-            data-tip={p.tip}
-            className={`rounded-theme px-3 py-2 text-left text-sm ${page === p.id ? "bg-accent text-accent-text" : "hover:bg-surface"} ${p.id === "guide" ? "mt-auto" : ""}`}
+            className={`nav-item flex items-center gap-2.5 rounded-theme px-3 py-2 text-left text-sm ${page === p.id ? "bg-accent/15 font-semibold text-accent" : "text-muted hover:bg-surface hover:text-text"} ${p.id === "guide" ? "mt-auto" : ""}`}
             aria-current={page === p.id ? "page" : undefined}
             onClick={() => setPage(p.id)}
           >
+            <p.Icon className="h-[18px] w-[18px] shrink-0" />
             {p.label}
           </button>
         ))}
       </nav>
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <header className="panel flex items-center justify-between px-4 py-2">
-          <h1 className="text-base font-semibold">{PAGES.find((p) => p.id === page)?.label}</h1>
+          <div key={page} className="fade-in">
+            <h1 className="text-base font-semibold leading-tight">{current.label}</h1>
+            <p className="text-xs text-muted">{current.tip}</p>
+          </div>
           <div className="flex items-center gap-4">
             {pinNote && <span className="text-sm text-accent">{pinNote}</span>}
             <div data-tour="status" data-tip="Whether the background sensor service is connected">
@@ -64,7 +74,7 @@ export function App() {
             </div>
           </div>
         </header>
-        <main className="min-h-0 flex-1">
+        <main key={page} className="page-enter min-h-0 flex-1">
           {page === "system" && <SystemInfoPage />}
           {page === "sensors" && <SensorsPage onPin={pin} />}
           {page === "dashboards" && <DashboardsPage />}

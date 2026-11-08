@@ -35,6 +35,7 @@ export function RadialGaugeWidget({ widget, compact }: WidgetProps) {
         <path d={arc(start, sweep)} fill="none" stroke="var(--sc-border)" strokeWidth={stroke} strokeLinecap="round" />
         {f > 0 && (
           <path
+            className="gauge-arc"
             d={arc(start, Math.max(0.5, f * sweep))}
             fill="none"
             stroke={color}
@@ -64,7 +65,7 @@ export function LinearBarWidget({ widget, compact }: WidgetProps) {
       <div className="flex h-full flex-col justify-center gap-1">
         <div className="text-right text-lg font-semibold tabular-nums">{formatValue(r.sensorType, v, settings.temperatureUnit, r.decimals, r.unit)}</div>
         <div className="h-3 w-full overflow-hidden rounded-theme bg-border" role="meter" aria-valuenow={v ?? undefined} aria-valuemin={r.min} aria-valuemax={r.max} aria-label={r.label}>
-          <div className="h-full rounded-theme transition-[width]" style={{ width: `${f * 100}%`, background: color }} />
+          <div className="bar-fill h-full rounded-theme" style={{ width: `${f * 100}%`, background: color }} />
         </div>
       </div>
     </WidgetFrame>
